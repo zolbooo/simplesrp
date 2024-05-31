@@ -2,13 +2,17 @@ import { G, N } from "../constants";
 import { modPow } from "../math";
 import { byteArrayToBigInt, hexStringToByteArray } from "../utils";
 
-async function defaultDigest({
+export type DigestFn = (options: {
+  salt: Uint8Array;
+  input: Uint8Array;
+}) => Uint8Array | Promise<Uint8Array>;
+export const digestPBKDF2 = async ({
   salt,
   input,
 }: {
   salt: Uint8Array;
   input: Uint8Array;
-}) {
+}) => {
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
     input,
@@ -23,35 +27,31 @@ async function defaultDigest({
     256
   );
   return new Uint8Array(hash);
-}
+};
 
 export async function deriveVerifier(
   password: string,
   {
-    unsafe_staticSalt,
+    salt,
     saltLength = 16,
     N: mod = N,
     G: generator = G,
-    digest = defaultDigest,
+    digest = digestPBKDF2,
   }: {
-    unsafe_staticSalt?: Uint8Array;
+    salt?: Uint8Array;
     saltLength?: number;
     N?: bigint;
     G?: bigint;
-    digest?: (options: {
-      input: Uint8Array;
-      salt: Uint8Array;
-    }) => Promise<Uint8Array> | Uint8Array;
+    digest?: DigestFn;
   } = {}
 ): Promise<{ salt: Uint8Array; verifier: Uint8Array }> {
-  const salt =
-    unsafe_staticSalt ?? crypto.getRandomValues(new Uint8Array(saltLength));
+  const actualSalt = salt ?? crypto.getRandomValues(new Uint8Array(saltLength));
   const passwordBytes = new TextEncoder().encode(password);
-  const passwordHash = await digest({ input: passwordBytes, salt });
+  const passwordHash = await digest({ input: passwordBytes, salt: actualSalt });
   const x = byteArrayToBigInt(passwordHash);
   const verifier = modPow(generator, x, mod);
   return {
-    salt,
+    salt: actualSalt,
     verifier: hexStringToByteArray(verifier.toString(16).padStart(2, "0")),
   };
 }

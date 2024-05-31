@@ -9,7 +9,7 @@ test("it should derive verifier according as per RFC5054", async () => {
   const { verifier } = await deriveVerifier("password123", {
     N: BigInt("0x" + N_1024),
     G: 2n,
-    unsafe_staticSalt: hexStringToByteArray(s),
+    salt: hexStringToByteArray(s),
     // See: https://datatracker.ietf.org/doc/html/rfc5054#section-2.4
     digest: async ({ input, salt }) => {
       const innerInput = [I, ":", new TextDecoder().decode(input)].join("");
@@ -42,7 +42,7 @@ test("it should derive same verifier for same password and salt", async () => {
   const { verifier: verifier2 } = await deriveVerifier("password123", {
     N: BigInt("0x" + N_1024),
     G: 2n,
-    unsafe_staticSalt: salt,
+    salt: salt,
   });
   expect(verifier1).toEqual(verifier2);
 });
