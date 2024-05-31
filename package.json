@@ -6,6 +6,11 @@
   "scripts": {
     "test": "vitest"
   },
+  "exports": {
+    "./server": "./lib/srp/server.js",
+    "./client": "./lib/srp/client.js",
+    "./constants": "./lib/constants.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zolbooo/srp.js.git"
