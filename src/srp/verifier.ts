@@ -1,6 +1,6 @@
-import { G, N } from "./constants";
-import { modPow } from "./math";
-import { byteArrayToBigInt, hexStringToByteArray } from "./utils";
+import { G, N } from "../constants";
+import { modPow } from "../math";
+import { byteArrayToBigInt, hexStringToByteArray } from "../utils";
 
 async function defaultDigest({
   salt,

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { deriveVerifier } from "../src/srp";
+import { deriveVerifier } from "../src/srp/verifier";
 import { byteArrayToHexString, hexStringToByteArray } from "../src/utils";
 
 // See: https://datatracker.ietf.org/doc/html/rfc5054#appendix-A
