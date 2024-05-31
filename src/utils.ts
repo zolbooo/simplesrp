@@ -15,6 +15,9 @@ export function hexStringToByteArray(hexString: string): Uint8Array {
   }
   return byteArray;
 }
+export function bigIntToByteArray(bigInt: bigint): Uint8Array {
+  return hexStringToByteArray(bigInt.toString(16));
+}
 
 export function padData(data: Uint8Array, N: Uint8Array): Uint8Array {
   const paddedData = new Uint8Array(N.length);
