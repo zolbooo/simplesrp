@@ -1,0 +1,27 @@
+{
+  "name": "srp.js",
+  "version": "0.0.1",
+  "description": "Secure Remote Password implementation for Node.js, browsers and edge runtimes",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zolbooo/srp.js.git"
+  },
+  "keywords": [
+    "srp",
+    "password",
+    "authentication"
+  ],
+  "author": "Zolboobayar Gantumur <zolboobayar@metainc.mn>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zolbooo/srp.js/issues"
+  },
+  "homepage": "https://github.com/zolbooo/srp.js#readme",
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
