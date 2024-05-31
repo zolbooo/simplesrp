@@ -1,6 +1,6 @@
 import { G, N } from "../constants";
 import { modPow } from "../math";
-import { generateRandomExponent } from "../utils";
+import { generateRandomExponent, hexStringToByteArray } from "../utils";
 
 export function generateClientEphemeral({
   modulo = N,
@@ -9,8 +9,8 @@ export function generateClientEphemeral({
   modulo?: bigint;
   generator?: bigint;
 } = {}): {
-  clientPrivateEphemeral: bigint;
-  clientPublicEphemeral: bigint;
+  clientPrivateEphemeral: Uint8Array;
+  clientPublicEphemeral: Uint8Array;
 } {
   while (true) {
     const clientPrivateEphemeral = generateRandomExponent(N);
@@ -20,7 +20,14 @@ export function generateClientEphemeral({
       modulo
     );
     if (clientPublicEphemeral > 1n) {
-      return { clientPrivateEphemeral, clientPublicEphemeral };
+      return {
+        clientPrivateEphemeral: hexStringToByteArray(
+          clientPrivateEphemeral.toString(16)
+        ),
+        clientPublicEphemeral: hexStringToByteArray(
+          clientPublicEphemeral.toString(16)
+        ),
+      };
     }
   }
 }
