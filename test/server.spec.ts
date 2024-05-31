@@ -25,6 +25,6 @@ test("it should generate server ephemeral value as per RFC5054", async () => {
       deriveMultiplier: deriveMultiplierSRP6a_SHA1,
       unsafe_staticPrivateEphemeral: BigInt("0x" + b),
     });
-  expect(serverPrivateEphemeral).toBe(BigInt("0x" + b));
-  expect(serverPublicEphemeral).toBe(BigInt("0x" + B));
+  expect(serverPrivateEphemeral).toEqual(hexStringToByteArray(b));
+  expect(serverPublicEphemeral).toEqual(hexStringToByteArray(B));
 });

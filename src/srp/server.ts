@@ -1,10 +1,11 @@
 import { modPow } from "../math";
 import { G, K, N } from "../constants";
 import {
-  byteArrayToHexString,
-  generateRandomExponent,
-  hexStringToByteArray,
   padData,
+  bigIntToByteArray,
+  byteArrayToHexString,
+  hexStringToByteArray,
+  generateRandomExponent,
 } from "../utils";
 
 export function deriveMultiplierSRP6(_: Uint8Array, __: Uint8Array) {
@@ -44,7 +45,10 @@ export async function generateServerEphemeral({
   generator?: bigint;
   modulo?: bigint;
   unsafe_staticPrivateEphemeral?: bigint;
-}) {
+}): Promise<{
+  serverPrivateEphemeral: Uint8Array;
+  serverPublicEphemeral: Uint8Array;
+}> {
   const multiplier = BigInt(
     "0x" +
       byteArrayToHexString(
@@ -69,6 +73,9 @@ export async function generateServerEphemeral({
       }
       continue;
     }
-    return { serverPrivateEphemeral, serverPublicEphemeral };
+    return {
+      serverPrivateEphemeral: bigIntToByteArray(serverPrivateEphemeral),
+      serverPublicEphemeral: bigIntToByteArray(serverPublicEphemeral),
+    };
   }
 }
