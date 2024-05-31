@@ -16,6 +16,16 @@ export function hexStringToByteArray(hexString: string): Uint8Array {
   return byteArray;
 }
 
+export function padData(data: Uint8Array, N: Uint8Array): Uint8Array {
+  const paddedData = new Uint8Array(N.length);
+  paddedData.set(data, length - data.length);
+  paddedData.set(
+    Array.from({ length: N.length - data.length }).map(() => 0),
+    0
+  );
+  return paddedData;
+}
+
 export function generateRandomExponent(mod: bigint): bigint {
   const modSize = Math.floor(mod.toString(2).length / 8);
   while (true) {
