@@ -33,8 +33,8 @@ export async function deriveMultiplierSRP6a_SHA1(N: Uint8Array, g: Uint8Array) {
 export async function generateServerEphemeral({
   verifier,
   deriveMultiplier = deriveMultiplierSRP6,
-  generator = G,
-  modulo = N,
+  G: generator = G,
+  N: modulo = N,
   unsafe_staticPrivateEphemeral,
 }: {
   verifier: Uint8Array;
@@ -42,8 +42,8 @@ export async function generateServerEphemeral({
     N: Uint8Array,
     g: Uint8Array
   ) => Uint8Array | Promise<Uint8Array>;
-  generator?: bigint;
-  modulo?: bigint;
+  G?: bigint;
+  N?: bigint;
   unsafe_staticPrivateEphemeral?: bigint;
 }): Promise<{
   serverPrivateEphemeral: Uint8Array;

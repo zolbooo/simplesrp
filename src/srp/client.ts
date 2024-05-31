@@ -3,11 +3,11 @@ import { modPow } from "../math";
 import { generateRandomExponent, hexStringToByteArray } from "../utils";
 
 export function generateClientEphemeral({
-  modulo = N,
-  generator = G,
+  N: modulo = N,
+  G: generator = G,
 }: {
-  modulo?: bigint;
-  generator?: bigint;
+  N?: bigint;
+  G?: bigint;
 } = {}): {
   clientPrivateEphemeral: Uint8Array;
   clientPublicEphemeral: Uint8Array;

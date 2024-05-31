@@ -20,7 +20,7 @@ test("it should derive multiplier as per RFC5054", async () => {
 test("it should generate server ephemeral value as per RFC5054", async () => {
   const { serverPrivateEphemeral, serverPublicEphemeral } =
     await generateServerEphemeral({
-      modulo: BigInt("0x" + N_1024),
+      N: BigInt("0x" + N_1024),
       verifier: hexStringToByteArray(v),
       deriveMultiplier: deriveMultiplierSRP6a_SHA1,
       unsafe_staticPrivateEphemeral: BigInt("0x" + b),
