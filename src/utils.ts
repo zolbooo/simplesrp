@@ -15,3 +15,16 @@ export function hexStringToByteArray(hexString: string): Uint8Array {
   }
   return byteArray;
 }
+
+export function generateRandomExponent(mod: bigint): bigint {
+  const modSize = Math.floor(mod.toString(2).length / 8);
+  while (true) {
+    const randomBytes = crypto.getRandomValues(new Uint8Array(modSize));
+    const derivedRandom = BigInt("0x" + byteArrayToHexString(randomBytes));
+    // (mod - 1) because Fermat's little theorem
+    const result = derivedRandom % (mod - 1n);
+    if (result > 1n) {
+      return result;
+    }
+  }
+}
