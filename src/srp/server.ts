@@ -1,38 +1,17 @@
 import { modPow } from "../math";
-import { G, K, N } from "../constants";
+import { G, N } from "../constants";
 import {
-  padData,
   bigIntToByteArray,
   byteArrayToHexString,
   hexStringToByteArray,
   generateRandomExponent,
 } from "../utils";
 
-export function deriveMultiplierSRP6(_: Uint8Array, __: Uint8Array) {
-  return hexStringToByteArray(K.toString(16));
-}
-export async function deriveMultiplierSRP6a(N: Uint8Array, g: Uint8Array) {
-  const hashInput = new Uint8Array(N.length * 2);
-  hashInput.set(N);
-  hashInput.set(padData(g, N), N.length);
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", hashInput));
-}
-export async function deriveMultiplierSRP6a_SHA1(N: Uint8Array, g: Uint8Array) {
-  const paddedG = new Uint8Array(N.length);
-  paddedG.set(g, N.length - g.length);
-  paddedG.set(
-    Array.from({ length: N.length - g.length }).map(() => 0),
-    0
-  );
-  const hashInput = new Uint8Array(N.length * 2);
-  hashInput.set(N);
-  hashInput.set(paddedG, N.length);
-  return new Uint8Array(await crypto.subtle.digest("SHA-1", hashInput));
-}
+import { deriveMultiplierSRP6a } from "./multiplier";
 
 export async function generateServerEphemeral({
   verifier,
-  deriveMultiplier = deriveMultiplierSRP6,
+  deriveMultiplier = deriveMultiplierSRP6a,
   G: generator = G,
   N: modulo = N,
   unsafe_staticPrivateEphemeral,
@@ -79,3 +58,5 @@ export async function generateServerEphemeral({
     };
   }
 }
+
+export * from "./multiplier";
