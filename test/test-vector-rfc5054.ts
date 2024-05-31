@@ -1,3 +1,8 @@
+import { expect } from "vitest";
+
+import { DigestFn } from "../src/srp/verifier";
+import { byteArrayToHexString, hexStringToByteArray } from "../src/utils";
+
 // See: https://datatracker.ietf.org/doc/html/rfc5054#appendix-B
 export const k = "7556AA04 5AEF2CDD 07ABAF0F 665C3E81 8913186F".replace(
   /\s/g,
@@ -25,6 +30,11 @@ export const B = `
 export const I = "alice";
 export const s = "BEB25379 D1A8581E B5A72767 3A2441EE".replace(/\s/g, "");
 
+export const a =
+  "60975527 035CF2AD 1989806F 0407210B C81EDC04 E2762A56 AFD529DD DA2D4393".replace(
+    /\s/g,
+    ""
+  );
 export const A = `
   61D5E490 F6F1B795 47B0704C 436F523D D0E560F0 C64115BB 72557EC4
   4352E890 3211C046 92272D8B 2D1A5358 A2CF1B6E 0BFCF99F 921530EC
@@ -45,3 +55,22 @@ export const N_1024 = `
   7BCF1885 C529F566 660E57EC 68EDBC3C 05726CC0 2FD4CBF4 976EAA9A
   FD5138FE 8376435B 9FC61D2F C0EB06E3
 `.replace(/\s/g, "");
+
+export const testDigestRFC5054: DigestFn = async ({ input, salt }) => {
+  const innerInput = [I, ":", new TextDecoder().decode(input)].join("");
+  const innerHash = await crypto.subtle.digest(
+    "SHA-1",
+    new TextEncoder().encode(innerInput)
+  );
+  expect(byteArrayToHexString(new Uint8Array(innerHash))).toBe(
+    "d0a293c8c443c4b151f6c0f6982861d2334ee933"
+  );
+  const outerInput = hexStringToByteArray(
+    byteArrayToHexString(salt) + byteArrayToHexString(new Uint8Array(innerHash))
+  );
+  const outerHash = await crypto.subtle.digest("SHA-1", outerInput);
+  expect(byteArrayToHexString(new Uint8Array(outerHash))).toBe(
+    "94b7555aabe9127cc58ccf4993db6cf84d16c124"
+  );
+  return new Uint8Array(outerHash);
+};
