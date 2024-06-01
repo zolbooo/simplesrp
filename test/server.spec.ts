@@ -8,7 +8,7 @@ import {
 import { G } from "../src/constants";
 import { byteArrayToHexString, hexStringToByteArray } from "../src/utils";
 
-import { A, B, N_1024, b, k, premaster, u, v } from "./test-vector-rfc5054";
+import { A, B, K, N_1024, b, k, u, v } from "./test-vector-rfc5054";
 
 test("it should derive multiplier as per RFC5054", async () => {
   const multiplier = await deriveMultiplierSRP6a_SHA1(N_1024, G);
@@ -34,8 +34,7 @@ test("it should derive session key as per RFC5054", async () => {
     clientPublicEphemeral: A,
     serverPrivateEphemeral: b,
     N: N_1024,
+    algorithm: "SHA-1",
   });
-  expect(byteArrayToHexString(sessionKey).toLowerCase()).toBe(
-    premaster.toLowerCase()
-  );
+  expect(byteArrayToHexString(sessionKey)).toBe(byteArrayToHexString(K));
 });

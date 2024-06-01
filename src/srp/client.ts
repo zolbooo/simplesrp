@@ -65,6 +65,7 @@ export async function deriveSessionKey({
   digest = digestPBKDF2,
   N: moduloBytes = N,
   G: generatorBytes = G,
+  algorithm = "SHA-256",
   ...options
 }: ClientSharedHashOptions & {
   username: string;
@@ -77,6 +78,7 @@ export async function deriveSessionKey({
   digest?: DigestFn;
   N?: Uint8Array;
   G?: Uint8Array;
+  algorithm?: "SHA-1" | "SHA-256";
 }): Promise<Uint8Array> {
   const u = byteArrayToBigInt(
     "sharedHash" in options
@@ -84,8 +86,8 @@ export async function deriveSessionKey({
       : await deriveSharedHash({
           clientPublicEphemeral,
           serverPublicEphemeral,
+          algorithm,
           N: moduloBytes,
-          algorithm: options.algorithm,
         })
   );
   const k = byteArrayToBigInt(
@@ -110,7 +112,8 @@ export async function deriveSessionKey({
     modulo
   );
   const exp = (byteArrayToBigInt(clientPrivateEphemeral) + u * x) % modulo;
-  return bigIntToByteArray(modPow(base, exp, modulo));
+  const S = bigIntToByteArray(modPow(base, exp, modulo));
+  return new Uint8Array(await crypto.subtle.digest(algorithm, S));
 }
 
 export async function deriveClientProof({
@@ -146,15 +149,17 @@ export async function deriveClientProof({
   const usernameHash = new Uint8Array(
     await crypto.subtle.digest(algorithm, new TextEncoder().encode(username))
   );
-  return await crypto.subtle.digest(
-    algorithm,
-    concatByteArrays(
-      xored,
-      usernameHash,
-      salt,
-      clientPublicEphemeral,
-      serverPublicEphemeral,
-      sessionKey
+  return new Uint8Array(
+    await crypto.subtle.digest(
+      algorithm,
+      concatByteArrays(
+        xored,
+        usernameHash,
+        salt,
+        clientPublicEphemeral,
+        serverPublicEphemeral,
+        sessionKey
+      )
     )
   );
 }

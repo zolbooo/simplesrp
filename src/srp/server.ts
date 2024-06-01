@@ -63,33 +63,33 @@ export async function deriveSessionKey({
   clientPublicEphemeral,
   serverPrivateEphemeral,
   N: moduloBytes = N,
+  algorithm = "SHA-256",
   ...options
-}: (
-  | { sharedHash: Uint8Array }
-  | { serverPublicEphemeral: Uint8Array; algorithm?: "SHA-1" | "SHA-256" }
-) & {
+}: ({ sharedHash: Uint8Array } | { serverPublicEphemeral: Uint8Array }) & {
   verifier: Uint8Array;
   clientPublicEphemeral: Uint8Array;
   serverPrivateEphemeral: Uint8Array;
   N?: Uint8Array;
+  algorithm?: "SHA-1" | "SHA-256";
 }) {
   const v = byteArrayToBigInt(verifier);
   const u = byteArrayToBigInt(
     "sharedHash" in options
       ? options.sharedHash
       : await deriveSharedHash({
+          algorithm,
           clientPublicEphemeral,
           serverPublicEphemeral: options.serverPublicEphemeral,
-          algorithm: options.algorithm,
           N: moduloBytes,
         })
   );
   const A = byteArrayToBigInt(clientPublicEphemeral);
   const b = byteArrayToBigInt(serverPrivateEphemeral);
   const modulo = byteArrayToBigInt(moduloBytes);
-  return bigIntToByteArray(
+  const S = bigIntToByteArray(
     modPow((A * modPow(v, u, modulo)) % modulo, b, modulo)
   );
+  return new Uint8Array(await crypto.subtle.digest(algorithm, S));
 }
 
 export * from "./multiplier";

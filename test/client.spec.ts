@@ -3,6 +3,7 @@ import { expect, test } from "vitest";
 import { byteArrayToBigInt, byteArrayToHexString } from "../src/utils";
 import {
   deriveSessionKey,
+  deriveClientProof,
   generateClientEphemeral,
   deriveMultiplierSRP6a_SHA1,
 } from "../src/srp/client";
@@ -15,8 +16,8 @@ import {
   u,
   I,
   p,
+  K,
   N_1024,
-  premaster,
   testDigestRFC5054,
 } from "./test-vector-rfc5054";
 
@@ -36,8 +37,8 @@ test("it should (almost) never generate the same client ephemeral value", () => 
   expect(clientPublicEphemeral1).not.toEqual(clientPublicEphemeral2);
 });
 
-test("it should derive premaster secret correctly as per RFC5054", async () => {
-  const premasterSecret = await deriveSessionKey({
+test("it should derive session key correctly", async () => {
+  const sessionKey = await deriveSessionKey({
     clientPrivateEphemeral: a,
     clientPublicEphemeral: A,
     serverPublicEphemeral: B,
@@ -48,8 +49,38 @@ test("it should derive premaster secret correctly as per RFC5054", async () => {
     N: N_1024,
     deriveMultiplier: deriveMultiplierSRP6a_SHA1,
     digest: testDigestRFC5054,
+    algorithm: "SHA-1",
   });
-  expect(byteArrayToHexString(premasterSecret).toLowerCase()).toBe(
-    premaster.toLowerCase()
+  expect(byteArrayToHexString(sessionKey).toLowerCase()).toBe(
+    byteArrayToHexString(K)
   );
+});
+
+// See: https://github.com/secure-remote-password/test-vectors/blob/master/srptools.json
+const expectedM1 = "3f3bc67169ea71302599cf1b0f5d408b7b65d347";
+test("should should derive client proof correctly", async () => {
+  const sessionKey = await deriveSessionKey({
+    clientPrivateEphemeral: a,
+    clientPublicEphemeral: A,
+    serverPublicEphemeral: B,
+    sharedHash: u,
+    salt: s,
+    username: I,
+    password: p,
+    N: N_1024,
+    algorithm: "SHA-1",
+    deriveMultiplier: deriveMultiplierSRP6a_SHA1,
+    digest: testDigestRFC5054,
+  });
+  expect(byteArrayToHexString(sessionKey)).toBe(byteArrayToHexString(K));
+  const clientProof = await deriveClientProof({
+    username: I,
+    salt: s,
+    clientPublicEphemeral: A,
+    serverPublicEphemeral: B,
+    sessionKey,
+    N: N_1024,
+    algorithm: "SHA-1",
+  });
+  expect(byteArrayToHexString(clientProof)).toBe(expectedM1);
 });
