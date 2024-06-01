@@ -14,8 +14,9 @@ import { byteArrayToHexString } from "../src/utils";
 
 test("it should produce correct shared secret", async () => {
   // 1. Client init
+  const username = "alice";
   const password = "test@password";
-  const { salt, verifier } = await deriveVerifier(password);
+  const { salt, verifier } = await deriveVerifier({ username, password });
   const { clientPublicEphemeral, clientPrivateEphemeral } =
     generateClientEphemeral();
   // 2. Server init
@@ -24,6 +25,7 @@ test("it should produce correct shared secret", async () => {
   // 3. Client-side shared session key
   const clientSharedKey = await deriveSessionKey_client({
     salt,
+    username,
     password,
     clientPublicEphemeral,
     serverPublicEphemeral,

@@ -1,6 +1,7 @@
 import { G, N } from "../constants";
 import { modPow } from "../math";
 import {
+  concatByteArrays,
   bigIntToByteArray,
   byteArrayToBigInt,
   hexStringToByteArray,
@@ -54,6 +55,7 @@ type ClientSharedHashOptions =
   | { sharedHash: Uint8Array }
   | { clientPublicEphemeral: Uint8Array; algorithm?: "SHA-1" | "SHA-256" };
 export async function deriveSessionKey({
+  username,
   password,
   salt,
   clientPrivateEphemeral,
@@ -65,6 +67,7 @@ export async function deriveSessionKey({
   G: generatorBytes = G,
   ...options
 }: ClientSharedHashOptions & {
+  username: string;
   password: string;
   salt: Uint8Array;
   clientPrivateEphemeral: Uint8Array;
@@ -89,12 +92,15 @@ export async function deriveSessionKey({
     await deriveMultiplier(moduloBytes, generatorBytes)
   );
   const modulo = byteArrayToBigInt(moduloBytes);
-  const { x: xBytes } = await deriveVerifier(password, {
-    salt,
-    N: moduloBytes,
-    G: generatorBytes,
-    digest,
-  });
+  const { x: xBytes } = await deriveVerifier(
+    { username, password },
+    {
+      salt,
+      N: moduloBytes,
+      G: generatorBytes,
+      digest,
+    }
+  );
   const x = byteArrayToBigInt(xBytes);
   // B - k * g^x
   const generator = byteArrayToBigInt(generatorBytes);

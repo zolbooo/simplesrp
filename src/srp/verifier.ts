@@ -31,7 +31,7 @@ export const digestPBKDF2 = async ({
 
 const defaultSaltLength = 16;
 export async function deriveVerifier(
-  password: string,
+  { username, password }: { username: string; password: string },
   {
     N: moduloBytes = N,
     G: generatorBytes = G,
@@ -47,8 +47,9 @@ export async function deriveVerifier(
     "salt" in options
       ? options.salt
       : new Uint8Array(options.saltLength ?? defaultSaltLength);
-  const passwordBytes = new TextEncoder().encode(password);
-  const passwordHash = await digest({ input: passwordBytes, salt });
+
+  const hashInput = new TextEncoder().encode([username, password].join(":"));
+  const passwordHash = await digest({ input: hashInput, salt });
 
   const x = byteArrayToBigInt(passwordHash);
   const modulo = byteArrayToBigInt(moduloBytes);

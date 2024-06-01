@@ -33,6 +33,7 @@ export const B = hexStringToByteArray(
 `.replace(/\s/g, "")
 );
 export const I = "alice";
+export const p = "password123";
 export const s = hexStringToByteArray(
   "BEB25379 D1A8581E B5A72767 3A2441EE".replace(/\s/g, "")
 );
@@ -75,11 +76,7 @@ export const N_1024 = hexStringToByteArray(
 );
 
 export const testDigestRFC5054: DigestFn = async ({ input, salt }) => {
-  const innerInput = [I, ":", new TextDecoder().decode(input)].join("");
-  const innerHash = await crypto.subtle.digest(
-    "SHA-1",
-    new TextEncoder().encode(innerInput)
-  );
+  const innerHash = await crypto.subtle.digest("SHA-1", input);
   expect(byteArrayToHexString(new Uint8Array(innerHash))).toBe(
     "d0a293c8c443c4b151f6c0f6982861d2334ee933"
   );
