@@ -4,6 +4,9 @@
   "type": "module",
   "description": "Secure Remote Password implementation for Node.js, browsers and edge runtimes",
   "main": "lib/index.js",
+  "files": [
+    "lib/"
+  ],
   "scripts": {
     "test": "vitest",
     "build": "swc src --strip-leading-paths --out-dir lib"
