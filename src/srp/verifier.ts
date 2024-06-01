@@ -29,29 +29,30 @@ export const digestPBKDF2 = async ({
   return new Uint8Array(hash);
 };
 
+const defaultSaltLength = 16;
 export async function deriveVerifier(
   password: string,
   {
-    salt,
-    saltLength = 16,
     N: mod = N,
     G: generator = G,
     digest = digestPBKDF2,
-  }: {
-    salt?: Uint8Array;
-    saltLength?: number;
+    ...options
+  }: ({ salt: Uint8Array } | { saltLength?: number }) & {
     N?: bigint;
     G?: bigint;
     digest?: DigestFn;
   } = {}
 ): Promise<{ salt: Uint8Array; verifier: Uint8Array }> {
-  const actualSalt = salt ?? crypto.getRandomValues(new Uint8Array(saltLength));
+  const salt =
+    "salt" in options
+      ? options.salt
+      : new Uint8Array(options.saltLength ?? defaultSaltLength);
   const passwordBytes = new TextEncoder().encode(password);
-  const passwordHash = await digest({ input: passwordBytes, salt: actualSalt });
+  const passwordHash = await digest({ input: passwordBytes, salt });
   const x = byteArrayToBigInt(passwordHash);
   const verifier = modPow(generator, x, mod);
   return {
-    salt: actualSalt,
+    salt: salt,
     verifier: hexStringToByteArray(verifier.toString(16).padStart(2, "0")),
   };
 }
