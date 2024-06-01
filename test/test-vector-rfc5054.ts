@@ -34,6 +34,10 @@ export const B = hexStringToByteArray(
 );
 export const I = "alice";
 export const p = "password123";
+export const x = "94B7555A ABE9127C C58CCF49 93DB6CF8 4D16C124".replace(
+  /\s/g,
+  ""
+);
 export const s = hexStringToByteArray(
   "BEB25379 D1A8581E B5A72767 3A2441EE".replace(/\s/g, "")
 );

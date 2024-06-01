@@ -4,10 +4,18 @@ import { deriveVerifier } from "../src/srp/verifier";
 import { byteArrayToHexString } from "../src/utils";
 
 import { G } from "../src/constants";
-import { N_1024, testDigestRFC5054, s, v, I, p } from "./test-vector-rfc5054";
+import {
+  s,
+  v,
+  I,
+  p,
+  x,
+  N_1024,
+  testDigestRFC5054,
+} from "./test-vector-rfc5054";
 
 test("it should derive verifier according as per RFC5054", async () => {
-  const { verifier } = await deriveVerifier(
+  const { x: derivedX, verifier } = await deriveVerifier(
     { username: I, password: p },
     {
       G,
@@ -17,6 +25,7 @@ test("it should derive verifier according as per RFC5054", async () => {
       digest: testDigestRFC5054,
     }
   );
+  expect(byteArrayToHexString(derivedX).toLowerCase()).toBe(x.toLowerCase());
   expect(byteArrayToHexString(verifier).toLowerCase()).toBe(
     byteArrayToHexString(v).toLowerCase()
   );

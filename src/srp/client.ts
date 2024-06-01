@@ -113,5 +113,51 @@ export async function deriveSessionKey({
   return bigIntToByteArray(modPow(base, exp, modulo));
 }
 
+export async function deriveClientProof({
+  username,
+  salt,
+  clientPublicEphemeral,
+  serverPublicEphemeral,
+  sessionKey,
+  N: moduloBytes = N,
+  G: generatorBytes = G,
+  algorithm = "SHA-256",
+}: {
+  username: string;
+  salt: Uint8Array;
+  clientPublicEphemeral: Uint8Array;
+  serverPublicEphemeral: Uint8Array;
+  sessionKey: Uint8Array;
+  N?: Uint8Array;
+  G?: Uint8Array;
+  algorithm?: "SHA-1" | "SHA-256";
+}) {
+  const moduloHash = new Uint8Array(
+    await crypto.subtle.digest(algorithm, moduloBytes)
+  );
+  const gHash = new Uint8Array(
+    await crypto.subtle.digest(algorithm, generatorBytes)
+  );
+  const xored = new Uint8Array(
+    Array.from({ length: moduloHash.length }).map(
+      (_, i) => moduloHash[i] ^ gHash[i]
+    )
+  );
+  const usernameHash = new Uint8Array(
+    await crypto.subtle.digest(algorithm, new TextEncoder().encode(username))
+  );
+  return await crypto.subtle.digest(
+    algorithm,
+    concatByteArrays(
+      xored,
+      usernameHash,
+      salt,
+      clientPublicEphemeral,
+      serverPublicEphemeral,
+      sessionKey
+    )
+  );
+}
+
 export * from "./verifier";
 export * from "./multiplier";
