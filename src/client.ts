@@ -108,7 +108,7 @@ export class ClientSession {
 
   async verifyServerProof(
     serverProof: Uint8Array
-  ): Promise<{ verified: boolean }> {
+  ): Promise<{ serverVerified: boolean }> {
     if (!this.clientProof || !this.clientPublicEphemeral || !this.sessionKey) {
       throw Error(
         "Expected client proof to be calculated first. Did you call finalizeHandshake method?"
@@ -124,6 +124,8 @@ export class ClientSession {
         )
       )
     );
-    return { verified: safeByteArrayEquals(expectedServerProof, serverProof) };
+    return {
+      serverVerified: safeByteArrayEquals(expectedServerProof, serverProof),
+    };
   }
 }
