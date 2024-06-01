@@ -59,7 +59,6 @@ export async function deriveSessionKey({
   password,
   salt,
   clientPrivateEphemeral,
-  clientPublicEphemeral,
   serverPublicEphemeral,
   deriveMultiplier = deriveMultiplierSRP6a,
   digest = digestPBKDF2,
@@ -72,7 +71,6 @@ export async function deriveSessionKey({
   password: string;
   salt: Uint8Array;
   clientPrivateEphemeral: Uint8Array;
-  clientPublicEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
   deriveMultiplier?: DeriveMultiplierFn;
   digest?: DigestFn;
@@ -84,9 +82,9 @@ export async function deriveSessionKey({
     "sharedHash" in options
       ? options.sharedHash
       : await deriveSharedHash({
-          clientPublicEphemeral,
           serverPublicEphemeral,
           algorithm,
+          clientPublicEphemeral: options.clientPublicEphemeral,
           N: moduloBytes,
         })
   );
