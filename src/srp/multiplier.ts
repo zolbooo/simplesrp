@@ -1,5 +1,5 @@
-import { K } from "../constants";
-import { concatByteArrays, hexStringToByteArray, padData } from "../utils";
+import { G, N } from "../constants";
+import { concatByteArrays, padData } from "../utils";
 
 export type DeriveMultiplierFn = (
   N: Uint8Array,
@@ -10,7 +10,7 @@ export const deriveMultiplierSRP6: DeriveMultiplierFn = (
   _: Uint8Array,
   __: Uint8Array
 ) => {
-  return hexStringToByteArray(K.toString(16));
+  return concatByteArrays(G, N);
 };
 export const deriveMultiplierSRP6a: DeriveMultiplierFn = async (
   N: Uint8Array,

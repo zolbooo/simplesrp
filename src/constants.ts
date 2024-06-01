@@ -21,4 +21,3 @@ const N_hex = `
 
 export const G = hexStringToByteArray("02");
 export const N = hexStringToByteArray(N_hex);
-export const K = BigInt("0x02" + N_hex);
