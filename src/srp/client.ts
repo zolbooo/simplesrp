@@ -53,7 +53,7 @@ function modNegative(a: bigint, n: bigint): bigint {
 
 type ClientSharedHashOptions =
   | { sharedHash: Uint8Array }
-  | { clientPublicEphemeral: Uint8Array; algorithm?: "SHA-1" | "SHA-256" };
+  | { clientPublicEphemeral: Uint8Array };
 export async function deriveSessionKey({
   username,
   password,
