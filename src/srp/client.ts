@@ -53,30 +53,34 @@ export async function deriveSessionKey({
   clientPrivateEphemeral,
   clientPublicEphemeral,
   serverPublicEphemeral,
-  sharedHash,
   deriveMultiplier = deriveMultiplierSRP6a,
   digest = digestPBKDF2,
   N: modulo = N,
   G: generator = G,
-}: {
+  ...options
+}: (
+  | { sharedHash: Uint8Array }
+  | { clientPublicEphemeral: Uint8Array; algorithm?: "SHA-1" | "SHA-256" }
+) & {
   password: string;
   salt: Uint8Array;
   clientPrivateEphemeral: Uint8Array;
   clientPublicEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
-  sharedHash?: Uint8Array;
   deriveMultiplier?: DeriveMultiplierFn;
   digest?: DigestFn;
   N?: bigint;
   G?: bigint;
 }): Promise<Uint8Array> {
   const u = byteArrayToBigInt(
-    sharedHash ??
-      (await deriveSharedHash({
-        clientPublicEphemeral,
-        serverPublicEphemeral,
-        N: modulo,
-      }))
+    "sharedHash" in options
+      ? options.sharedHash
+      : await deriveSharedHash({
+          clientPublicEphemeral,
+          serverPublicEphemeral,
+          N: modulo,
+          algorithm: options.algorithm,
+        })
   );
   const k = byteArrayToBigInt(
     await deriveMultiplier(
