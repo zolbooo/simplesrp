@@ -12,7 +12,9 @@
   },
   "scripts": {
     "test": "vitest",
-    "build": "swc src --strip-leading-paths --out-dir lib"
+    "build:types": "tsc -p tsconfig.lib.json",
+    "build:lib": "swc src --strip-leading-paths --out-dir lib",
+    "build": "npm run build:lib && npm run build:types"
   },
   "exports": {
     ".": "./lib/index.js",
