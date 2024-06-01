@@ -4,6 +4,7 @@
   "type": "module",
   "description": "Secure Remote Password implementation for Node.js, browsers and edge runtimes",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": [
     "lib/"
   ],
@@ -17,10 +18,22 @@
     "build": "npm run build:lib && npm run build:types"
   },
   "exports": {
-    ".": "./lib/index.js",
-    "./server": "./lib/srp/server.js",
-    "./client": "./lib/srp/client.js",
-    "./constants": "./lib/constants.js"
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./server": {
+      "types": "./lib/srp/server.d.ts",
+      "default": "./lib/srp/server.js"
+    },
+    "./client": {
+      "types": "./lib/srp/client.d.ts",
+      "default": "./lib/srp/client.js"
+    },
+    "./constants": {
+      "types": "./lib/constants.d.ts",
+      "default": "./lib/constants.js"
+    }
   },
   "repository": {
     "type": "git",
