@@ -19,6 +19,18 @@ export function bigIntToByteArray(bigInt: bigint): Uint8Array {
   return hexStringToByteArray(bigInt.toString(16));
 }
 
+export function concatByteArrays(...arrays: Uint8Array[]): Uint8Array {
+  const result = new Uint8Array(
+    arrays.reduce((total, curr) => total + curr.length, 0)
+  );
+  let i = 0;
+  for (const array of arrays) {
+    result.set(array, i);
+    i += array.length;
+  }
+  return result;
+}
+
 export function padData(data: Uint8Array, N: Uint8Array): Uint8Array {
   const paddedData = new Uint8Array(N.length);
   paddedData.set(data, N.length - data.length);

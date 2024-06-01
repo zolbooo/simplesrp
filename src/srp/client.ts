@@ -49,6 +49,10 @@ function modNegative(a: bigint, n: bigint): bigint {
   }
   return a % n;
 }
+
+type ClientSharedHashOptions =
+  | { sharedHash: Uint8Array }
+  | { clientPublicEphemeral: Uint8Array; algorithm?: "SHA-1" | "SHA-256" };
 export async function deriveSessionKey({
   password,
   salt,
@@ -60,10 +64,7 @@ export async function deriveSessionKey({
   N: moduloBytes = N,
   G: generatorBytes = G,
   ...options
-}: (
-  | { sharedHash: Uint8Array }
-  | { clientPublicEphemeral: Uint8Array; algorithm?: "SHA-1" | "SHA-256" }
-) & {
+}: ClientSharedHashOptions & {
   password: string;
   salt: Uint8Array;
   clientPrivateEphemeral: Uint8Array;
