@@ -8,6 +8,7 @@ import {
   generateRandomExponent,
 } from "../utils";
 
+import { deriveSharedHash } from "./common";
 import { deriveMultiplierSRP6a } from "./multiplier";
 
 export async function generateServerEphemeral({
@@ -62,20 +63,31 @@ export async function generateServerEphemeral({
 
 export async function deriveSessionKey({
   verifier,
-  sharedHash,
   clientPublicEphemeral,
   serverPrivateEphemeral,
   N: modulo = N,
-}: {
+  ...options
+}: (
+  | { sharedHash: Uint8Array }
+  | { serverPublicEphemeral: Uint8Array; algorithm?: "SHA-1" | "SHA-256" }
+) & {
   verifier: Uint8Array;
-  sharedHash: Uint8Array;
   clientPublicEphemeral: Uint8Array;
   serverPrivateEphemeral: Uint8Array;
   N?: bigint;
   G?: bigint;
 }) {
   const v = byteArrayToBigInt(verifier);
-  const u = byteArrayToBigInt(sharedHash);
+  const u = byteArrayToBigInt(
+    "sharedHash" in options
+      ? options.sharedHash
+      : await deriveSharedHash({
+          clientPublicEphemeral,
+          serverPublicEphemeral: options.serverPublicEphemeral,
+          algorithm: options.algorithm,
+          N: modulo,
+        })
+  );
   const A = byteArrayToBigInt(clientPublicEphemeral);
   const b = byteArrayToBigInt(serverPrivateEphemeral);
   return bigIntToByteArray(
