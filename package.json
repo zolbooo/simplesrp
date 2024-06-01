@@ -1,5 +1,5 @@
 {
-  "name": "srp.js",
+  "name": "simplesrp",
   "version": "0.0.2-1",
   "type": "module",
   "description": "Secure Remote Password implementation for Node.js, browsers and edge runtimes",
