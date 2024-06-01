@@ -42,7 +42,7 @@ test("it should derive session key as per RFC5054", async () => {
 
 export const expectedM2 = "9cab3c575a11de37d3ac1421a9f009236a48eb55";
 test("it should server proof correctly", async () => {
-  const serverProof = await deriveServerProof({
+  const { serverProof } = await deriveServerProof({
     username: I,
     salt: s,
     clientPublicEphemeral: A,

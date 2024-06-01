@@ -112,7 +112,7 @@ export async function deriveServerProof({
   N?: Uint8Array;
   G?: Uint8Array;
   algorithm?: "SHA-1" | "SHA-256";
-}): Promise<Uint8Array> {
+}): Promise<{ expectedClientProof: Uint8Array; serverProof: Uint8Array }> {
   const M1 = await deriveClientProof({
     username,
     salt,
@@ -123,12 +123,15 @@ export async function deriveServerProof({
     G: generatorBytes,
     algorithm,
   });
-  return new Uint8Array(
-    await crypto.subtle.digest(
-      algorithm,
-      concatByteArrays(clientPublicEphemeral, M1, sessionKey)
-    )
-  );
+  return {
+    expectedClientProof: M1,
+    serverProof: new Uint8Array(
+      await crypto.subtle.digest(
+        algorithm,
+        concatByteArrays(clientPublicEphemeral, M1, sessionKey)
+      )
+    ),
+  };
 }
 
 export * from "./multiplier";
