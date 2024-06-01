@@ -72,7 +72,7 @@ export class ServerSession {
     salt: Uint8Array;
     clientProof: Uint8Array;
   }): Promise<{
-    serverProof: Uint8Array;
+    serverProof: Uint8Array | null;
     clientVerified: boolean;
   }> {
     if (
@@ -104,9 +104,16 @@ export class ServerSession {
       G: this.G,
       algorithm: this.algorithm,
     });
+    const clientVerified = safeByteArrayEquals(
+      clientProof,
+      expectedClientProof
+    );
     return {
-      serverProof,
-      clientVerified: safeByteArrayEquals(clientProof, expectedClientProof),
+      // Don't return server proof if password is invalid!
+      // This might compromise the security of user's password.
+      // See: https://datatracker.ietf.org/doc/html/rfc2945#section-3
+      serverProof: clientVerified ? serverProof : null,
+      clientVerified,
     };
   }
 }
