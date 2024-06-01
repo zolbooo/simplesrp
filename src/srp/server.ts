@@ -1,11 +1,13 @@
 import { G, N } from "../constants";
 import { modPow } from "../math";
 import {
+  concatByteArrays,
   bigIntToByteArray,
   byteArrayToBigInt,
   byteArrayToHexString,
   generateRandomExponent,
 } from "../utils";
+import { deriveClientProof } from "./client";
 
 import { deriveSharedHash } from "./common";
 import { deriveMultiplierSRP6a } from "./multiplier";
@@ -90,6 +92,43 @@ export async function deriveSessionKey({
     modPow((A * modPow(v, u, modulo)) % modulo, b, modulo)
   );
   return new Uint8Array(await crypto.subtle.digest(algorithm, S));
+}
+
+export async function deriveServerProof({
+  username,
+  salt,
+  clientPublicEphemeral,
+  serverPublicEphemeral,
+  sessionKey,
+  N: moduloBytes = N,
+  G: generatorBytes = G,
+  algorithm = "SHA-256",
+}: {
+  username: string;
+  salt: Uint8Array;
+  clientPublicEphemeral: Uint8Array;
+  serverPublicEphemeral: Uint8Array;
+  sessionKey: Uint8Array;
+  N?: Uint8Array;
+  G?: Uint8Array;
+  algorithm?: "SHA-1" | "SHA-256";
+}): Promise<Uint8Array> {
+  const M1 = await deriveClientProof({
+    username,
+    salt,
+    clientPublicEphemeral,
+    serverPublicEphemeral,
+    sessionKey,
+    N: moduloBytes,
+    G: generatorBytes,
+    algorithm,
+  });
+  return new Uint8Array(
+    await crypto.subtle.digest(
+      algorithm,
+      concatByteArrays(clientPublicEphemeral, M1, sessionKey)
+    )
+  );
 }
 
 export * from "./multiplier";
