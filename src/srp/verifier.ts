@@ -42,7 +42,7 @@ export async function deriveVerifier(
     G?: bigint;
     digest?: DigestFn;
   } = {}
-): Promise<{ salt: Uint8Array; verifier: Uint8Array }> {
+): Promise<{ salt: Uint8Array; x: Uint8Array; verifier: Uint8Array }> {
   const salt =
     "salt" in options
       ? options.salt
@@ -52,7 +52,8 @@ export async function deriveVerifier(
   const x = byteArrayToBigInt(passwordHash);
   const verifier = modPow(generator, x, mod);
   return {
-    salt: salt,
+    salt,
+    x: passwordHash,
     verifier: hexStringToByteArray(verifier.toString(16).padStart(2, "0")),
   };
 }
