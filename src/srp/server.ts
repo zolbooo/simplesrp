@@ -4,7 +4,6 @@ import {
   bigIntToByteArray,
   byteArrayToBigInt,
   byteArrayToHexString,
-  hexStringToByteArray,
   generateRandomExponent,
 } from "../utils";
 
@@ -14,8 +13,8 @@ import { deriveMultiplierSRP6a } from "./multiplier";
 export async function generateServerEphemeral({
   verifier,
   deriveMultiplier = deriveMultiplierSRP6a,
-  G: generator = G,
-  N: modulo = N,
+  G: generatorBytes = G,
+  N: moduloBytes = N,
   unsafe_staticPrivateEphemeral,
 }: {
   verifier: Uint8Array;
@@ -23,25 +22,23 @@ export async function generateServerEphemeral({
     N: Uint8Array,
     g: Uint8Array
   ) => Uint8Array | Promise<Uint8Array>;
-  G?: bigint;
-  N?: bigint;
-  unsafe_staticPrivateEphemeral?: bigint;
+  G?: Uint8Array;
+  N?: Uint8Array;
+  unsafe_staticPrivateEphemeral?: Uint8Array;
 }): Promise<{
   serverPrivateEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
 }> {
   const multiplier = BigInt(
     "0x" +
-      byteArrayToHexString(
-        await deriveMultiplier(
-          hexStringToByteArray(modulo.toString(16)),
-          hexStringToByteArray(generator.toString(16))
-        )
-      )
+      byteArrayToHexString(await deriveMultiplier(moduloBytes, generatorBytes))
   );
+  const modulo = byteArrayToBigInt(moduloBytes);
+  const generator = byteArrayToBigInt(generatorBytes);
   while (true) {
-    const serverPrivateEphemeral =
-      unsafe_staticPrivateEphemeral ?? generateRandomExponent(modulo);
+    const serverPrivateEphemeral = unsafe_staticPrivateEphemeral
+      ? byteArrayToBigInt(unsafe_staticPrivateEphemeral)
+      : generateRandomExponent(modulo);
     const serverPublicEphemeral =
       (((multiplier * BigInt("0x" + byteArrayToHexString(verifier))) % modulo) +
         modPow(generator, serverPrivateEphemeral, modulo)) %
@@ -65,7 +62,7 @@ export async function deriveSessionKey({
   verifier,
   clientPublicEphemeral,
   serverPrivateEphemeral,
-  N: modulo = N,
+  N: moduloBytes = N,
   ...options
 }: (
   | { sharedHash: Uint8Array }
@@ -74,8 +71,7 @@ export async function deriveSessionKey({
   verifier: Uint8Array;
   clientPublicEphemeral: Uint8Array;
   serverPrivateEphemeral: Uint8Array;
-  N?: bigint;
-  G?: bigint;
+  N?: Uint8Array;
 }) {
   const v = byteArrayToBigInt(verifier);
   const u = byteArrayToBigInt(
@@ -85,11 +81,12 @@ export async function deriveSessionKey({
           clientPublicEphemeral,
           serverPublicEphemeral: options.serverPublicEphemeral,
           algorithm: options.algorithm,
-          N: modulo,
+          N: moduloBytes,
         })
   );
   const A = byteArrayToBigInt(clientPublicEphemeral);
   const b = byteArrayToBigInt(serverPrivateEphemeral);
+  const modulo = byteArrayToBigInt(moduloBytes);
   return bigIntToByteArray(
     modPow((A * modPow(v, u, modulo)) % modulo, b, modulo)
   );

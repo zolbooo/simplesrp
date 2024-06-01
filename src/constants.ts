@@ -1,5 +1,4 @@
-export const INFO_BITS = new TextEncoder().encode("Caldera Derived Key");
-export const G = 2n;
+import { hexStringToByteArray } from "./utils";
 
 const N_hex = `
   FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1
@@ -19,5 +18,7 @@ const N_hex = `
   BBE117577A615D6C770988C0BAD946E208E24FA074E5AB31
   43DB5BFCE0FD108E4B82D120A93AD2CAFFFFFFFFFFFFFFFF
 `.replace(/\s/g, "");
-export const N = BigInt("0x" + N_hex);
+
+export const G = hexStringToByteArray("02");
+export const N = hexStringToByteArray(N_hex);
 export const K = BigInt("0x02" + N_hex);

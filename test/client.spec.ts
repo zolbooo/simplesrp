@@ -1,10 +1,6 @@
 import { expect, test } from "vitest";
 
-import {
-  byteArrayToBigInt,
-  byteArrayToHexString,
-  hexStringToByteArray,
-} from "../src/utils";
+import { byteArrayToBigInt, byteArrayToHexString } from "../src/utils";
 import {
   deriveSessionKey,
   generateClientEphemeral,
@@ -40,13 +36,13 @@ test("it should (almost) never generate the same client ephemeral value", () => 
 
 test("it should derive premaster secret correctly as per RFC5054", async () => {
   const premasterSecret = await deriveSessionKey({
-    clientPrivateEphemeral: hexStringToByteArray(a),
-    clientPublicEphemeral: hexStringToByteArray(A),
-    serverPublicEphemeral: hexStringToByteArray(B),
-    sharedHash: hexStringToByteArray(u),
-    salt: hexStringToByteArray(s),
+    clientPrivateEphemeral: a,
+    clientPublicEphemeral: A,
+    serverPublicEphemeral: B,
+    sharedHash: u,
+    salt: s,
     password: "password123",
-    N: BigInt("0x" + N_1024),
+    N: N_1024,
     deriveMultiplier: deriveMultiplierSRP6a_SHA1,
     digest: testDigestRFC5054,
   });

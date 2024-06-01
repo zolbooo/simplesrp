@@ -33,13 +33,13 @@ const defaultSaltLength = 16;
 export async function deriveVerifier(
   password: string,
   {
-    N: mod = N,
-    G: generator = G,
+    N: moduloBytes = N,
+    G: generatorBytes = G,
     digest = digestPBKDF2,
     ...options
   }: ({ salt: Uint8Array } | { saltLength?: number }) & {
-    N?: bigint;
-    G?: bigint;
+    N?: Uint8Array;
+    G?: Uint8Array;
     digest?: DigestFn;
   } = {}
 ): Promise<{ salt: Uint8Array; x: Uint8Array; verifier: Uint8Array }> {
@@ -49,8 +49,11 @@ export async function deriveVerifier(
       : new Uint8Array(options.saltLength ?? defaultSaltLength);
   const passwordBytes = new TextEncoder().encode(password);
   const passwordHash = await digest({ input: passwordBytes, salt });
+
   const x = byteArrayToBigInt(passwordHash);
-  const verifier = modPow(generator, x, mod);
+  const modulo = byteArrayToBigInt(moduloBytes);
+  const generator = byteArrayToBigInt(generatorBytes);
+  const verifier = modPow(generator, x, modulo);
   return {
     salt,
     x: passwordHash,

@@ -12,17 +12,19 @@ import { DigestFn, deriveVerifier, digestPBKDF2 } from "./verifier";
 import { DeriveMultiplierFn, deriveMultiplierSRP6a } from "./multiplier";
 
 export function generateClientEphemeral({
-  N: modulo = N,
-  G: generator = G,
+  N: moduloBytes = N,
+  G: generatorBytes = G,
 }: {
-  N?: bigint;
-  G?: bigint;
+  N?: Uint8Array;
+  G?: Uint8Array;
 } = {}): {
   clientPrivateEphemeral: Uint8Array;
   clientPublicEphemeral: Uint8Array;
 } {
+  const modulo = byteArrayToBigInt(moduloBytes);
+  const generator = byteArrayToBigInt(generatorBytes);
   while (true) {
-    const clientPrivateEphemeral = generateRandomExponent(N);
+    const clientPrivateEphemeral = generateRandomExponent(modulo);
     const clientPublicEphemeral = modPow(
       generator,
       clientPrivateEphemeral,
@@ -55,8 +57,8 @@ export async function deriveSessionKey({
   serverPublicEphemeral,
   deriveMultiplier = deriveMultiplierSRP6a,
   digest = digestPBKDF2,
-  N: modulo = N,
-  G: generator = G,
+  N: moduloBytes = N,
+  G: generatorBytes = G,
   ...options
 }: (
   | { sharedHash: Uint8Array }
@@ -69,8 +71,8 @@ export async function deriveSessionKey({
   serverPublicEphemeral: Uint8Array;
   deriveMultiplier?: DeriveMultiplierFn;
   digest?: DigestFn;
-  N?: bigint;
-  G?: bigint;
+  N?: Uint8Array;
+  G?: Uint8Array;
 }): Promise<Uint8Array> {
   const u = byteArrayToBigInt(
     "sharedHash" in options
@@ -78,27 +80,26 @@ export async function deriveSessionKey({
       : await deriveSharedHash({
           clientPublicEphemeral,
           serverPublicEphemeral,
-          N: modulo,
+          N: moduloBytes,
           algorithm: options.algorithm,
         })
   );
   const k = byteArrayToBigInt(
-    await deriveMultiplier(
-      bigIntToByteArray(modulo),
-      bigIntToByteArray(generator)
-    )
+    await deriveMultiplier(moduloBytes, generatorBytes)
   );
+  const modulo = byteArrayToBigInt(moduloBytes);
   const { x: xBytes } = await deriveVerifier(password, {
     salt,
-    N: modulo,
-    G: generator,
+    N: moduloBytes,
+    G: generatorBytes,
     digest,
   });
   const x = byteArrayToBigInt(xBytes);
   // B - k * g^x
+  const generator = byteArrayToBigInt(generatorBytes);
+  const B = byteArrayToBigInt(serverPublicEphemeral);
   const base = modNegative(
-    byteArrayToBigInt(serverPublicEphemeral) -
-      ((k * modPow(generator, x, modulo)) % modulo),
+    B - ((k * modPow(generator, x, modulo)) % modulo),
     modulo
   );
   const exp = (byteArrayToBigInt(clientPrivateEphemeral) + u * x) % modulo;
