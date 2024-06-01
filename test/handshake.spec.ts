@@ -1,14 +1,15 @@
 import { expect, test } from "vitest";
 
-import { deriveVerifier } from "../src/srp/verifier";
+import {
+  deriveVerifier,
+  generateClientEphemeral,
+  deriveSessionKey as deriveSessionKey_client,
+} from "../src/srp/client";
 import {
   generateServerEphemeral,
   deriveSessionKey as deriveSessionKey_server,
 } from "../src/srp/server";
-import {
-  generateClientEphemeral,
-  deriveSessionKey as deriveSessionKey_client,
-} from "../src/srp/client";
+
 import { byteArrayToHexString } from "../src/utils";
 
 test("it should produce correct shared secret", async () => {
