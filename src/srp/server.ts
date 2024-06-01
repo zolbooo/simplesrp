@@ -1,7 +1,8 @@
-import { modPow } from "../math";
 import { G, N } from "../constants";
+import { modPow } from "../math";
 import {
   bigIntToByteArray,
+  byteArrayToBigInt,
   byteArrayToHexString,
   hexStringToByteArray,
   generateRandomExponent,
@@ -57,6 +58,29 @@ export async function generateServerEphemeral({
       serverPublicEphemeral: bigIntToByteArray(serverPublicEphemeral),
     };
   }
+}
+
+export async function deriveSessionKey({
+  verifier,
+  sharedHash,
+  clientPublicEphemeral,
+  serverPrivateEphemeral,
+  N: modulo = N,
+}: {
+  verifier: Uint8Array;
+  sharedHash: Uint8Array;
+  clientPublicEphemeral: Uint8Array;
+  serverPrivateEphemeral: Uint8Array;
+  N?: bigint;
+  G?: bigint;
+}) {
+  const v = byteArrayToBigInt(verifier);
+  const u = byteArrayToBigInt(sharedHash);
+  const A = byteArrayToBigInt(clientPublicEphemeral);
+  const b = byteArrayToBigInt(serverPrivateEphemeral);
+  return bigIntToByteArray(
+    modPow((A * modPow(v, u, modulo)) % modulo, b, modulo)
+  );
 }
 
 export * from "./multiplier";

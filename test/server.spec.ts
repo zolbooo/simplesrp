@@ -1,13 +1,14 @@
 import { expect, test } from "vitest";
 
 import {
+  deriveSessionKey,
   generateServerEphemeral,
   deriveMultiplierSRP6a_SHA1,
 } from "../src/srp/server";
 import { G } from "../src/constants";
-import { hexStringToByteArray } from "../src/utils";
+import { byteArrayToHexString, hexStringToByteArray } from "../src/utils";
 
-import { B, N_1024, b, k, v } from "./test-vector-rfc5054";
+import { A, B, N_1024, b, k, premaster, u, v } from "./test-vector-rfc5054";
 
 test("it should derive multiplier as per RFC5054", async () => {
   const multiplier = await deriveMultiplierSRP6a_SHA1(
@@ -27,4 +28,17 @@ test("it should generate server ephemeral value as per RFC5054", async () => {
     });
   expect(serverPrivateEphemeral).toEqual(hexStringToByteArray(b));
   expect(serverPublicEphemeral).toEqual(hexStringToByteArray(B));
+});
+
+test("it should derive session key as per RFC5054", async () => {
+  const sessionKey = await deriveSessionKey({
+    verifier: hexStringToByteArray(v),
+    sharedHash: hexStringToByteArray(u),
+    clientPublicEphemeral: hexStringToByteArray(A),
+    serverPrivateEphemeral: hexStringToByteArray(b),
+    N: BigInt("0x" + N_1024),
+  });
+  expect(byteArrayToHexString(sessionKey).toLowerCase()).toBe(
+    premaster.toLowerCase()
+  );
 });
