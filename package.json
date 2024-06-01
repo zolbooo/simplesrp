@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zolbooo/srp.js.git"
+    "url": "git+https://github.com/zolbooo/simplesrp.git"
   },
   "keywords": [
     "srp",
@@ -32,9 +32,9 @@
   "author": "Zolboobayar Gantumur <zolboobayar@metainc.mn>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/zolbooo/srp.js/issues"
+    "url": "https://github.com/zolbooo/simplesrp/issues"
   },
-  "homepage": "https://github.com/zolbooo/srp.js#readme",
+  "homepage": "https://github.com/zolbooo/simplesrp#readme",
   "devDependencies": {
     "@edge-runtime/vm": "^3.2.0",
     "@swc/cli": "^0.3.12",
