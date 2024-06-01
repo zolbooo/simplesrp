@@ -7,6 +7,7 @@
     "test": "vitest"
   },
   "exports": {
+    ".": "./lib/index.js",
     "./server": "./lib/srp/server.js",
     "./client": "./lib/srp/client.js",
     "./constants": "./lib/constants.js"
