@@ -8,24 +8,17 @@ import {
   generateServerEphemeral,
 } from "./srp/server";
 import { deriveClientProof } from "./srp/client";
-import { DeriveMultiplierFn } from "./srp/multiplier";
 
 export class ServerSession {
   private parameters: SRPParameterSet = constants.SRP_PARAMETERS_RFC5054_2048;
 
-  private deriveMultiplier?: DeriveMultiplierFn;
   constructor({
     parameters,
-    deriveMultiplier,
   }: {
     parameters?: SRPParameterSet;
-    deriveMultiplier?: DeriveMultiplierFn;
   } = {}) {
     if (parameters) {
       this.parameters = parameters;
-    }
-    if (deriveMultiplier) {
-      this.deriveMultiplier = deriveMultiplier;
     }
   }
 
@@ -45,7 +38,6 @@ export class ServerSession {
       await generateServerEphemeral({
         verifier,
         parameters: this.parameters,
-        deriveMultiplier: this.deriveMultiplier,
       });
     this.clientVerifier = verifier;
     this.clientPublicEphemeral = clientPublicEphemeral;

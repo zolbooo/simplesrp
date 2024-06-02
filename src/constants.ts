@@ -1,3 +1,5 @@
+import { DeriveMultiplierFn } from "./srp/multiplier";
+
 import { hexStringToByteArray } from "./utils";
 
 export type SRPHashAlgorithm = "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512";
@@ -5,6 +7,7 @@ export interface SRPParameterSet {
   N: Uint8Array;
   G: Uint8Array;
   algorithm: SRPHashAlgorithm;
+  deriveMultiplier?: DeriveMultiplierFn;
 }
 
 export const SRP_PARAMETERS_RFC5054_2048: SRPParameterSet = {

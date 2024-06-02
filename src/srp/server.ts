@@ -9,22 +9,21 @@ import {
 } from "../utils";
 
 import { deriveSharedHash } from "./common";
-import { DeriveMultiplierFn, deriveMultiplierSRP6a } from "./multiplier";
+import { deriveMultiplierSRP6a } from "./multiplier";
 
 export async function generateServerEphemeral({
   verifier,
-  deriveMultiplier = deriveMultiplierSRP6a,
   parameters = defaultParameters,
   unsafe_staticPrivateEphemeral,
 }: {
   verifier: Uint8Array;
-  deriveMultiplier?: DeriveMultiplierFn;
   parameters?: SRPParameterSet;
   unsafe_staticPrivateEphemeral?: Uint8Array;
 }): Promise<{
   serverPrivateEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
 }> {
+  const { deriveMultiplier = deriveMultiplierSRP6a } = parameters;
   const multiplier = BigInt(
     "0x" + byteArrayToHexString(await deriveMultiplier(parameters))
   );

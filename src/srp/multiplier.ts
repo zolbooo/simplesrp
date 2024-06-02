@@ -2,7 +2,7 @@ import { SRPParameterSet } from "../constants";
 import { concatByteArrays, padData } from "../utils";
 
 export type DeriveMultiplierFn = (
-  parameters: SRPParameterSet
+  parameters: Pick<SRPParameterSet, "N" | "G" | "algorithm">
 ) => Uint8Array | Promise<Uint8Array>;
 
 export const deriveMultiplierSRP6a: DeriveMultiplierFn = async (parameters) =>

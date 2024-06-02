@@ -1,13 +1,8 @@
 import * as constants from "./constants";
 
 import { SRPParameterSet } from "./constants";
-import {
-  byteArrayToHexString,
-  concatByteArrays,
-  safeByteArrayEquals,
-} from "./utils";
+import { concatByteArrays, safeByteArrayEquals } from "./utils";
 
-import { DeriveMultiplierFn } from "./srp/multiplier";
 import { DigestFn, deriveVerifier } from "./srp/verifier";
 import {
   deriveSessionKey,
@@ -21,24 +16,18 @@ export class ClientSession {
   private parameters: SRPParameterSet = constants.SRP_PARAMETERS_RFC5054_2048;
 
   private digest?: DigestFn;
-  private deriveMultiplier?: DeriveMultiplierFn;
   constructor({
     parameters,
     digest,
-    deriveMultiplier,
   }: {
     parameters?: SRPParameterSet;
     digest?: DigestFn;
-    deriveMultiplier?: DeriveMultiplierFn;
   } = {}) {
     if (parameters) {
       this.parameters = parameters;
     }
     if (digest) {
       this.digest = digest;
-    }
-    if (deriveMultiplier) {
-      this.deriveMultiplier = deriveMultiplier;
     }
   }
 
@@ -82,7 +71,6 @@ export class ClientSession {
       serverPublicEphemeral: serverPublicEphemeral,
       parameters: this.parameters,
       digest: this.digest,
-      deriveMultiplier: this.deriveMultiplier,
     });
     this.sessionKey = sessionKey;
     const clientProof = await deriveClientProof({

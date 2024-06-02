@@ -9,8 +9,8 @@ import {
 } from "../utils";
 
 import { deriveSharedHash } from "./common";
+import { deriveMultiplierSRP6a } from "./multiplier";
 import { DigestFn, deriveVerifier, digestPBKDF2 } from "./verifier";
-import { DeriveMultiplierFn, deriveMultiplierSRP6a } from "./multiplier";
 
 export function generateClientEphemeral(
   parameters: SRPParameterSet = defaultParameters
@@ -57,7 +57,6 @@ export async function deriveSessionKey({
   salt,
   clientPrivateEphemeral,
   serverPublicEphemeral,
-  deriveMultiplier = deriveMultiplierSRP6a,
   digest = digestPBKDF2,
   parameters = defaultParameters,
   unsafe_skipOutputHashing = false,
@@ -68,7 +67,6 @@ export async function deriveSessionKey({
   salt: Uint8Array;
   clientPrivateEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
-  deriveMultiplier?: DeriveMultiplierFn;
   digest?: DigestFn;
   parameters?: SRPParameterSet;
   unsafe_skipOutputHashing?: boolean;
@@ -82,7 +80,9 @@ export async function deriveSessionKey({
           parameters,
         })
   );
+  const { deriveMultiplier = deriveMultiplierSRP6a } = parameters;
   const k = byteArrayToBigInt(await deriveMultiplier(parameters));
+
   const N = byteArrayToBigInt(parameters.N);
   const { x: xBytes, verifier } = await deriveVerifier(
     { username, password },
