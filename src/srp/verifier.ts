@@ -2,10 +2,13 @@ import { modPow } from "../math";
 import { SRPParameterSet, defaultParameters } from "../constants";
 import { byteArrayToBigInt, hexStringToByteArray } from "../utils";
 
-export type DigestFn = (options: {
-  salt: Uint8Array;
-  input: Uint8Array;
-}) => Uint8Array | Promise<Uint8Array>;
+export type DigestFn = (
+  options: {
+    salt: Uint8Array;
+    input: Uint8Array;
+  },
+  parameters: SRPParameterSet
+) => Uint8Array | Promise<Uint8Array>;
 export const digestPBKDF2 = async ({
   salt,
   input,
@@ -49,7 +52,7 @@ export async function deriveVerifier(
         );
 
   const hashInput = new TextEncoder().encode([username, password].join(":"));
-  const passwordHash = await digest({ input: hashInput, salt });
+  const passwordHash = await digest({ input: hashInput, salt }, parameters);
 
   const x = byteArrayToBigInt(passwordHash);
   const modulo = byteArrayToBigInt(parameters.N);
