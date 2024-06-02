@@ -44,7 +44,9 @@ export async function deriveVerifier(
   const salt =
     "salt" in options
       ? options.salt
-      : new Uint8Array(options.saltLength ?? defaultSaltLength);
+      : crypto.getRandomValues(
+          new Uint8Array(options.saltLength ?? defaultSaltLength)
+        );
 
   const hashInput = new TextEncoder().encode([username, password].join(":"));
   const passwordHash = await digest({ input: hashInput, salt });
