@@ -7,6 +7,7 @@ import {
   deriveServerProof,
   generateServerEphemeral,
 } from "./srp/server";
+import { deriveClientProof } from "./srp/client";
 import { DeriveMultiplierFn } from "./srp/multiplier";
 
 export class ServerSession {
@@ -90,12 +91,12 @@ export class ServerSession {
       parameters: this.parameters,
       algorithm: this.algorithm,
     });
-    const { expectedClientProof, serverProof } = await deriveServerProof({
+    const expectedClientProof = await deriveClientProof({
       username,
       salt,
-      sessionKey,
       clientPublicEphemeral: this.clientPublicEphemeral,
       serverPublicEphemeral: this.serverPublicEphemeral,
+      sessionKey,
       parameters: this.parameters,
       algorithm: this.algorithm,
     });
@@ -103,11 +104,19 @@ export class ServerSession {
       clientProof,
       expectedClientProof
     );
+    // Don't return server proof if password is invalid!
+    // This might compromise the security of user's password.
+    // See: https://datatracker.ietf.org/doc/html/rfc2945#section-3
+    if (!clientVerified) {
+      return { serverProof: null, clientVerified };
+    }
     return {
-      // Don't return server proof if password is invalid!
-      // This might compromise the security of user's password.
-      // See: https://datatracker.ietf.org/doc/html/rfc2945#section-3
-      serverProof: clientVerified ? serverProof : null,
+      serverProof: await deriveServerProof({
+        clientPublicEphemeral: this.clientPublicEphemeral,
+        clientProof,
+        sessionKey,
+        algorithm: this.algorithm,
+      }),
       clientVerified,
     };
   }

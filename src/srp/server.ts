@@ -87,40 +87,22 @@ export async function deriveSessionKey({
 }
 
 export async function deriveServerProof({
-  username,
-  salt,
   clientPublicEphemeral,
-  serverPublicEphemeral,
+  clientProof,
   sessionKey,
-  parameters = defaultParameters,
   algorithm = "SHA-256",
 }: {
-  username: string;
-  salt: Uint8Array;
   clientPublicEphemeral: Uint8Array;
-  serverPublicEphemeral: Uint8Array;
+  clientProof: Uint8Array;
   sessionKey: Uint8Array;
-  parameters?: SRPParameterSet;
   algorithm?: "SHA-1" | "SHA-256";
-}): Promise<{ expectedClientProof: Uint8Array; serverProof: Uint8Array }> {
-  const M1 = await deriveClientProof({
-    username,
-    salt,
-    clientPublicEphemeral,
-    serverPublicEphemeral,
-    sessionKey,
-    algorithm,
-    parameters,
-  });
-  return {
-    expectedClientProof: M1,
-    serverProof: new Uint8Array(
-      await crypto.subtle.digest(
-        algorithm,
-        concatByteArrays(clientPublicEphemeral, M1, sessionKey)
-      )
-    ),
-  };
+}): Promise<Uint8Array> {
+  return new Uint8Array(
+    await crypto.subtle.digest(
+      algorithm,
+      concatByteArrays(clientPublicEphemeral, clientProof, sessionKey)
+    )
+  );
 }
 
 export * from "./multiplier";
