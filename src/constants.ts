@@ -1,8 +1,10 @@
 import { hexStringToByteArray } from "./utils";
 
+export type SRPHashAlgorithm = "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512";
 export interface SRPParameterSet {
   N: Uint8Array;
   G: Uint8Array;
+  algorithm: SRPHashAlgorithm;
 }
 
 export const SRP_PARAMETERS_RFC5054_2048: SRPParameterSet = {
@@ -21,6 +23,7 @@ export const SRP_PARAMETERS_RFC5054_2048: SRPParameterSet = {
     `.replace(/\s/g, "")
   ),
   G: new Uint8Array([0x02]),
+  algorithm: "SHA-256",
 };
 export { SRP_PARAMETERS_RFC5054_2048 as defaultParameters };
 
@@ -44,6 +47,7 @@ export const SRP_PARAMETERS_RFC5054_3072: SRPParameterSet = {
     `.replace(/\s/g, "")
   ),
   G: new Uint8Array([0x05]),
+  algorithm: "SHA-384",
 };
 export const SRP_PARAMETERS_RFC5054_4096: SRPParameterSet = {
   N: hexStringToByteArray(
@@ -70,4 +74,5 @@ export const SRP_PARAMETERS_RFC5054_4096: SRPParameterSet = {
     `.replace(/\s/g, "")
   ),
   G: new Uint8Array([0x05]),
+  algorithm: "SHA-512",
 };

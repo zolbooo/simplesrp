@@ -5,16 +5,14 @@ export async function deriveSharedHash({
   clientPublicEphemeral,
   serverPublicEphemeral,
   parameters = defaultParameters,
-  algorithm = "SHA-256",
 }: {
   clientPublicEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
   parameters?: SRPParameterSet;
-  algorithm?: "SHA-256" | "SHA-1";
 }): Promise<Uint8Array> {
   return new Uint8Array(
     await crypto.subtle.digest(
-      algorithm,
+      parameters.algorithm,
       concatByteArrays(
         padData(clientPublicEphemeral, parameters.N),
         padData(serverPublicEphemeral, parameters.N)

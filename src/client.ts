@@ -1,7 +1,11 @@
 import * as constants from "./constants";
 
 import { SRPParameterSet } from "./constants";
-import { concatByteArrays, safeByteArrayEquals } from "./utils";
+import {
+  byteArrayToHexString,
+  concatByteArrays,
+  safeByteArrayEquals,
+} from "./utils";
 
 import { DeriveMultiplierFn } from "./srp/multiplier";
 import { DigestFn, deriveVerifier } from "./srp/verifier";
@@ -14,25 +18,19 @@ import {
 export class ClientSession {
   static deriveVerifier = deriveVerifier;
 
-  private algorithm: "SHA-1" | "SHA-256" = "SHA-256";
   private parameters: SRPParameterSet = constants.SRP_PARAMETERS_RFC5054_2048;
 
   private digest?: DigestFn;
   private deriveMultiplier?: DeriveMultiplierFn;
   constructor({
-    algorithm,
     parameters,
     digest,
     deriveMultiplier,
   }: {
     parameters?: SRPParameterSet;
-    algorithm?: "SHA-256" | "SHA-1";
     digest?: DigestFn;
     deriveMultiplier?: DeriveMultiplierFn;
   } = {}) {
-    if (algorithm) {
-      this.algorithm = algorithm;
-    }
     if (parameters) {
       this.parameters = parameters;
     }
@@ -49,7 +47,7 @@ export class ClientSession {
 
   initializeHandshake(): { clientPublicEphemeral: Uint8Array } {
     const { clientPrivateEphemeral, clientPublicEphemeral } =
-      generateClientEphemeral({ N: this.parameters.N, G: this.parameters.G });
+      generateClientEphemeral(this.parameters);
     this.clientPublicEphemeral = clientPublicEphemeral;
     this.clientPrivateEphemeral = clientPrivateEphemeral;
     return { clientPublicEphemeral };
@@ -83,7 +81,6 @@ export class ClientSession {
       clientPrivateEphemeral: this.clientPrivateEphemeral,
       serverPublicEphemeral: serverPublicEphemeral,
       parameters: this.parameters,
-      algorithm: this.algorithm,
       digest: this.digest,
       deriveMultiplier: this.deriveMultiplier,
     });
@@ -95,7 +92,6 @@ export class ClientSession {
       clientPublicEphemeral: this.clientPublicEphemeral,
       sessionKey,
       parameters: this.parameters,
-      algorithm: this.algorithm,
     });
     this.clientProof = clientProof;
     return { clientProof };
@@ -111,7 +107,7 @@ export class ClientSession {
     }
     const expectedServerProof = new Uint8Array(
       await crypto.subtle.digest(
-        this.algorithm,
+        this.parameters.algorithm,
         concatByteArrays(
           this.clientPublicEphemeral,
           this.clientProof,

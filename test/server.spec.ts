@@ -3,8 +3,8 @@ import { expect, test } from "vitest";
 import {
   deriveSessionKey,
   deriveServerProof,
+  deriveMultiplierSRP6a,
   generateServerEphemeral,
-  deriveMultiplierSRP6aFactory,
 } from "../src/srp/server";
 import { byteArrayToHexString, hexStringToByteArray } from "../src/utils";
 
@@ -22,7 +22,7 @@ import {
 } from "./test-vector-rfc5054";
 
 test("it should derive multiplier as per RFC5054", async () => {
-  const multiplier = await deriveMultiplierSRP6aFactory("SHA-1")(parameters);
+  const multiplier = await deriveMultiplierSRP6a(parameters);
   expect(multiplier).toEqual(hexStringToByteArray(k));
 });
 
@@ -31,7 +31,6 @@ test("it should generate server ephemeral value as per RFC5054", async () => {
     await generateServerEphemeral({
       verifier: v,
       parameters,
-      deriveMultiplier: deriveMultiplierSRP6aFactory("SHA-1"),
       unsafe_staticPrivateEphemeral: b,
     });
   expect(serverPrivateEphemeral).toEqual(b);
@@ -45,7 +44,6 @@ test("it should derive session key as per RFC5054", async () => {
     clientPublicEphemeral: A,
     serverPrivateEphemeral: b,
     parameters,
-    algorithm: "SHA-1",
   });
   expect(byteArrayToHexString(sessionKey)).toBe(byteArrayToHexString(K));
 });
@@ -56,7 +54,7 @@ test("it should server proof correctly", async () => {
     clientProof,
     clientPublicEphemeral: A,
     sessionKey: K,
-    algorithm: "SHA-1",
+    parameters,
   });
   expect(byteArrayToHexString(serverProof)).toBe(expectedM2);
 });

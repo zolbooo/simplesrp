@@ -8,7 +8,6 @@ test("it should derive correct value u", async () => {
   const sharedHash = await deriveSharedHash({
     clientPublicEphemeral: A,
     serverPublicEphemeral: B,
-    algorithm: "SHA-1",
     parameters,
   });
   expect(byteArrayToHexString(sharedHash).toString()).toEqual(

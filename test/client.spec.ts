@@ -5,7 +5,6 @@ import {
   deriveSessionKey,
   deriveClientProof,
   generateClientEphemeral,
-  deriveMultiplierSRP6aFactory,
 } from "../src/srp/client";
 
 import {
@@ -48,8 +47,6 @@ test("it should derive session key correctly", async () => {
     username: I,
     password: p,
     parameters,
-    algorithm: "SHA-1",
-    deriveMultiplier: deriveMultiplierSRP6aFactory("SHA-1"),
     digest: testDigestRFC5054,
   });
   expect(byteArrayToHexString(sessionKey).toLowerCase()).toBe(
@@ -67,8 +64,6 @@ test("should should derive client proof correctly", async () => {
     username: I,
     password: p,
     parameters,
-    algorithm: "SHA-1",
-    deriveMultiplier: deriveMultiplierSRP6aFactory("SHA-1"),
     digest: testDigestRFC5054,
   });
   expect(byteArrayToHexString(sessionKey)).toBe(byteArrayToHexString(K));
@@ -79,7 +74,6 @@ test("should should derive client proof correctly", async () => {
     serverPublicEphemeral: B,
     sessionKey,
     parameters,
-    algorithm: "SHA-1",
   });
   expect(byteArrayToHexString(clientProof)).toBe(
     byteArrayToHexString(expectedM1)

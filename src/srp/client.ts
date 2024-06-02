@@ -60,7 +60,6 @@ export async function deriveSessionKey({
   deriveMultiplier = deriveMultiplierSRP6a,
   digest = digestPBKDF2,
   parameters = defaultParameters,
-  algorithm = "SHA-256",
   ...options
 }: ClientSharedHashOptions & {
   username: string;
@@ -71,14 +70,12 @@ export async function deriveSessionKey({
   deriveMultiplier?: DeriveMultiplierFn;
   digest?: DigestFn;
   parameters?: SRPParameterSet;
-  algorithm?: "SHA-1" | "SHA-256";
 }): Promise<Uint8Array> {
   const u = byteArrayToBigInt(
     "sharedHash" in options
       ? options.sharedHash
       : await deriveSharedHash({
           serverPublicEphemeral,
-          algorithm,
           clientPublicEphemeral: options.clientPublicEphemeral,
           parameters,
         })
@@ -94,7 +91,6 @@ export async function deriveSessionKey({
     }
   );
   const v = byteArrayToBigInt(verifier);
-  const G = byteArrayToBigInt(parameters.G);
   const B = byteArrayToBigInt(serverPublicEphemeral);
   // B - (k * g^x) = B - (k * v) since g^x = v
   const base = modNegative(B - ((k * v) % N), N);
@@ -103,7 +99,7 @@ export async function deriveSessionKey({
   const exp = (a + ((u * x) % N)) % N;
   const S = modPow(base, exp, N);
   return new Uint8Array(
-    await crypto.subtle.digest(algorithm, bigIntToByteArray(S))
+    await crypto.subtle.digest(parameters.algorithm, bigIntToByteArray(S))
   );
 }
 
@@ -114,7 +110,6 @@ export async function deriveClientProof({
   serverPublicEphemeral,
   sessionKey,
   parameters = defaultParameters,
-  algorithm = "SHA-256",
 }: {
   username: string;
   salt: Uint8Array;
@@ -122,13 +117,12 @@ export async function deriveClientProof({
   serverPublicEphemeral: Uint8Array;
   sessionKey: Uint8Array;
   parameters?: SRPParameterSet;
-  algorithm?: "SHA-1" | "SHA-256";
 }) {
   const moduloHash = new Uint8Array(
-    await crypto.subtle.digest(algorithm, parameters.N)
+    await crypto.subtle.digest(parameters.algorithm, parameters.N)
   );
   const generatorHash = new Uint8Array(
-    await crypto.subtle.digest(algorithm, parameters.G)
+    await crypto.subtle.digest(parameters.algorithm, parameters.G)
   );
   const combinedHash = new Uint8Array(
     Array.from({ length: moduloHash.length }).map(
@@ -136,11 +130,14 @@ export async function deriveClientProof({
     )
   );
   const usernameHash = new Uint8Array(
-    await crypto.subtle.digest(algorithm, new TextEncoder().encode(username))
+    await crypto.subtle.digest(
+      parameters.algorithm,
+      new TextEncoder().encode(username)
+    )
   );
   return new Uint8Array(
     await crypto.subtle.digest(
-      algorithm,
+      parameters.algorithm,
       concatByteArrays(
         combinedHash,
         usernameHash,

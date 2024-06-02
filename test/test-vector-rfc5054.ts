@@ -88,6 +88,7 @@ export const parameters: SRPParameterSet = {
     FD5138FE 8376435B 9FC61D2F C0EB06E3`.replace(/\s/g, "")
   ),
   G: new Uint8Array([0x02]),
+  algorithm: "SHA-1",
 };
 
 // See: https://github.com/secure-remote-password/test-vectors/blob/master/srptools.json

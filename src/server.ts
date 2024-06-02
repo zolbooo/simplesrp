@@ -11,22 +11,16 @@ import { deriveClientProof } from "./srp/client";
 import { DeriveMultiplierFn } from "./srp/multiplier";
 
 export class ServerSession {
-  private algorithm: "SHA-1" | "SHA-256" = "SHA-256";
   private parameters: SRPParameterSet = constants.SRP_PARAMETERS_RFC5054_2048;
 
   private deriveMultiplier?: DeriveMultiplierFn;
   constructor({
-    algorithm,
     parameters,
     deriveMultiplier,
   }: {
-    algorithm?: "SHA-256" | "SHA-1";
     parameters?: SRPParameterSet;
     deriveMultiplier?: DeriveMultiplierFn;
   } = {}) {
-    if (algorithm) {
-      this.algorithm = algorithm;
-    }
     if (parameters) {
       this.parameters = parameters;
     }
@@ -89,7 +83,6 @@ export class ServerSession {
       serverPublicEphemeral: this.serverPublicEphemeral,
       serverPrivateEphemeral: this.serverPrivateEphemeral,
       parameters: this.parameters,
-      algorithm: this.algorithm,
     });
     const expectedClientProof = await deriveClientProof({
       username,
@@ -98,7 +91,6 @@ export class ServerSession {
       serverPublicEphemeral: this.serverPublicEphemeral,
       sessionKey,
       parameters: this.parameters,
-      algorithm: this.algorithm,
     });
     const clientVerified = safeByteArrayEquals(
       clientProof,
@@ -115,7 +107,7 @@ export class ServerSession {
         clientPublicEphemeral: this.clientPublicEphemeral,
         clientProof,
         sessionKey,
-        algorithm: this.algorithm,
+        parameters: this.parameters,
       }),
       clientVerified,
     };
