@@ -84,10 +84,13 @@ test("it should perform client-server handshake with RFC5054 3072 bit parameters
     parameters: SRP_PARAMETERS_RFC5054_3072,
   });
   // 1. Calculate verifier, submit it along with salt to the server
-  const { salt, verifier } = await ClientSession.deriveVerifier({
-    username,
-    password,
-  });
+  const { salt, verifier } = await ClientSession.deriveVerifier(
+    {
+      username,
+      password,
+    },
+    { parameters: SRP_PARAMETERS_RFC5054_3072 }
+  );
   // 2. Initialize client session
   const { clientPublicEphemeral } = clientSession.initializeHandshake();
   // 3. Retrieve verifier for the user, initialize server session
