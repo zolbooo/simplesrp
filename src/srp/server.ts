@@ -58,12 +58,14 @@ export async function deriveSessionKey({
   clientPublicEphemeral,
   serverPrivateEphemeral,
   parameters = defaultParameters,
+  unsafe_skipOutputHashing = false,
   ...options
 }: ({ sharedHash: Uint8Array } | { serverPublicEphemeral: Uint8Array }) & {
   verifier: Uint8Array;
   clientPublicEphemeral: Uint8Array;
   serverPrivateEphemeral: Uint8Array;
   parameters?: SRPParameterSet;
+  unsafe_skipOutputHashing?: boolean;
 }) {
   const v = byteArrayToBigInt(verifier);
   const u = byteArrayToBigInt(
@@ -78,8 +80,13 @@ export async function deriveSessionKey({
   const A = byteArrayToBigInt(clientPublicEphemeral);
   const b = byteArrayToBigInt(serverPrivateEphemeral);
   const N = byteArrayToBigInt(parameters.N);
-  const S = bigIntToByteArray(modPow((A * modPow(v, u, N)) % N, b, N));
-  return new Uint8Array(await crypto.subtle.digest(parameters.algorithm, S));
+  const S = modPow((A * modPow(v, u, N)) % N, b, N);
+  if (unsafe_skipOutputHashing) {
+    return bigIntToByteArray(S);
+  }
+  return new Uint8Array(
+    await crypto.subtle.digest(parameters.algorithm, bigIntToByteArray(S))
+  );
 }
 
 export async function deriveServerProof({
