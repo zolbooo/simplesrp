@@ -17,6 +17,7 @@ import {
   I,
   p,
   K,
+  expectedM1,
   parameters,
   testDigestRFC5054,
 } from "./test-vector-rfc5054";
@@ -56,8 +57,6 @@ test("it should derive session key correctly", async () => {
   );
 });
 
-// See: https://github.com/secure-remote-password/test-vectors/blob/master/srptools.json
-const expectedM1 = "3f3bc67169ea71302599cf1b0f5d408b7b65d347";
 test("should should derive client proof correctly", async () => {
   const sessionKey = await deriveSessionKey({
     clientPrivateEphemeral: a,
@@ -82,5 +81,7 @@ test("should should derive client proof correctly", async () => {
     parameters,
     algorithm: "SHA-1",
   });
-  expect(byteArrayToHexString(clientProof)).toBe(expectedM1);
+  expect(byteArrayToHexString(clientProof)).toBe(
+    byteArrayToHexString(expectedM1)
+  );
 });

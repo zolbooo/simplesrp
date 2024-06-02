@@ -90,6 +90,12 @@ export const parameters: SRPParameterSet = {
   G: new Uint8Array([0x02]),
 };
 
+// See: https://github.com/secure-remote-password/test-vectors/blob/master/srptools.json
+export const expectedM1 = hexStringToByteArray(
+  "3f3bc67169ea71302599cf1b0f5d408b7b65d347"
+);
+export const expectedM2 = "9cab3c575a11de37d3ac1421a9f009236a48eb55";
+
 export const testDigestRFC5054: DigestFn = async ({ input, salt }) => {
   const innerHash = await crypto.subtle.digest("SHA-1", input);
   expect(byteArrayToHexString(new Uint8Array(innerHash))).toBe(
