@@ -60,6 +60,7 @@ export async function deriveSessionKey({
   deriveMultiplier = deriveMultiplierSRP6a,
   digest = digestPBKDF2,
   parameters = defaultParameters,
+  unsafe_skipOutputHashing = false,
   ...options
 }: ClientSharedHashOptions & {
   username: string;
@@ -70,6 +71,7 @@ export async function deriveSessionKey({
   deriveMultiplier?: DeriveMultiplierFn;
   digest?: DigestFn;
   parameters?: SRPParameterSet;
+  unsafe_skipOutputHashing?: boolean;
 }): Promise<Uint8Array> {
   const u = byteArrayToBigInt(
     "sharedHash" in options
@@ -98,6 +100,9 @@ export async function deriveSessionKey({
   const x = byteArrayToBigInt(xBytes);
   const exp = (a + ((u * x) % N)) % N;
   const S = modPow(base, exp, N);
+  if (unsafe_skipOutputHashing) {
+    return bigIntToByteArray(S);
+  }
   return new Uint8Array(
     await crypto.subtle.digest(parameters.algorithm, bigIntToByteArray(S))
   );
