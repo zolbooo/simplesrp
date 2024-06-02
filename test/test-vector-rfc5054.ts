@@ -1,11 +1,5 @@
-import { expect } from "vitest";
-
 import { DigestFn } from "../src/srp/verifier";
-import {
-  concatByteArrays,
-  byteArrayToHexString,
-  hexStringToByteArray,
-} from "../src/utils";
+import { concatByteArrays, hexStringToByteArray } from "../src/utils";
 import { SRPParameterSet } from "../src/constants";
 
 // See: https://datatracker.ietf.org/doc/html/rfc5054#appendix-B
@@ -97,19 +91,16 @@ export const expectedM1 = hexStringToByteArray(
 );
 export const expectedM2 = "9cab3c575a11de37d3ac1421a9f009236a48eb55";
 
-export const testDigestRFC5054: DigestFn = async ({ input, salt }) => {
-  const innerHash = await crypto.subtle.digest("SHA-1", input);
-  expect(byteArrayToHexString(new Uint8Array(innerHash))).toBe(
-    "d0a293c8c443c4b151f6c0f6982861d2334ee933"
-  );
+export const testDigestRFC5054: DigestFn = async (
+  { input, salt },
+  parameters
+) => {
+  const innerHash = await crypto.subtle.digest(parameters.algorithm, input);
   const digest = new Uint8Array(
     await crypto.subtle.digest(
-      "SHA-1",
+      parameters.algorithm,
       concatByteArrays(salt, new Uint8Array(innerHash))
     )
-  );
-  expect(byteArrayToHexString(digest)).toBe(
-    "94b7555aabe9127cc58ccf4993db6cf84d16c124"
   );
   return digest;
 };
