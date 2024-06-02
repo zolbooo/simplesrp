@@ -3,14 +3,13 @@ import { expect, test } from "vitest";
 import { deriveVerifier } from "../src/srp/verifier";
 import { byteArrayToHexString } from "../src/utils";
 
-import { G } from "../src/constants";
 import {
   s,
   v,
   I,
   p,
   x,
-  N_1024,
+  parameters,
   testDigestRFC5054,
 } from "./test-vector-rfc5054";
 
@@ -18,9 +17,8 @@ test("it should derive verifier according as per RFC5054", async () => {
   const { x: derivedX, verifier } = await deriveVerifier(
     { username: I, password: p },
     {
-      G,
-      N: N_1024,
       salt: s,
+      parameters,
       // See: https://datatracker.ietf.org/doc/html/rfc5054#section-2.4
       digest: testDigestRFC5054,
     }
@@ -34,18 +32,11 @@ test("it should derive verifier according as per RFC5054", async () => {
 test("it should derive same verifier for same password and salt", async () => {
   const { verifier: verifier1, salt } = await deriveVerifier(
     { username: I, password: p },
-    {
-      G,
-      N: N_1024,
-    }
+    { parameters }
   );
   const { verifier: verifier2 } = await deriveVerifier(
     { username: I, password: p },
-    {
-      G,
-      salt,
-      N: N_1024,
-    }
+    { salt, parameters }
   );
   expect(verifier1).toEqual(verifier2);
 });

@@ -6,6 +6,7 @@ import {
   byteArrayToHexString,
   hexStringToByteArray,
 } from "../src/utils";
+import { SRPParameterSet } from "../src/constants";
 
 // See: https://datatracker.ietf.org/doc/html/rfc5054#appendix-B
 export const k = "7556AA04 5AEF2CDD 07ABAF0F 665C3E81 8913186F".replace(
@@ -77,14 +78,17 @@ const premaster = hexStringToByteArray(
 export const K = new Uint8Array(await crypto.subtle.digest("SHA-1", premaster));
 
 // See: https://datatracker.ietf.org/doc/html/rfc5054#appendix-A
-export const N_1024 = hexStringToByteArray(
-  `
-  EEAF0AB9 ADB38DD6 9C33F80A FA8FC5E8 60726187 75FF3C0B 9EA2314C
-  9C256576 D674DF74 96EA81D3 383B4813 D692C6E0 E0D5D8E2 50B98BE4
-  8E495C1D 6089DAD1 5DC7D7B4 6154D6B6 CE8EF4AD 69B15D49 82559B29
-  7BCF1885 C529F566 660E57EC 68EDBC3C 05726CC0 2FD4CBF4 976EAA9A
-  FD5138FE 8376435B 9FC61D2F C0EB06E3`.replace(/\s/g, "")
-);
+export const parameters: SRPParameterSet = {
+  N: hexStringToByteArray(
+    `
+    EEAF0AB9 ADB38DD6 9C33F80A FA8FC5E8 60726187 75FF3C0B 9EA2314C
+    9C256576 D674DF74 96EA81D3 383B4813 D692C6E0 E0D5D8E2 50B98BE4
+    8E495C1D 6089DAD1 5DC7D7B4 6154D6B6 CE8EF4AD 69B15D49 82559B29
+    7BCF1885 C529F566 660E57EC 68EDBC3C 05726CC0 2FD4CBF4 976EAA9A
+    FD5138FE 8376435B 9FC61D2F C0EB06E3`.replace(/\s/g, "")
+  ),
+  G: new Uint8Array([0x02]),
+};
 
 export const testDigestRFC5054: DigestFn = async ({ input, salt }) => {
   const innerHash = await crypto.subtle.digest("SHA-1", input);

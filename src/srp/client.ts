@@ -1,5 +1,5 @@
-import { G, N } from "../constants";
 import { modPow } from "../math";
+import { SRPParameterSet, defaultParameters } from "../constants";
 import {
   concatByteArrays,
   bigIntToByteArray,
@@ -12,18 +12,14 @@ import { deriveSharedHash } from "./common";
 import { DigestFn, deriveVerifier, digestPBKDF2 } from "./verifier";
 import { DeriveMultiplierFn, deriveMultiplierSRP6a } from "./multiplier";
 
-export function generateClientEphemeral({
-  N: moduloBytes = N,
-  G: generatorBytes = G,
-}: {
-  N?: Uint8Array;
-  G?: Uint8Array;
-} = {}): {
+export function generateClientEphemeral(
+  parameters: SRPParameterSet = defaultParameters
+): {
   clientPrivateEphemeral: Uint8Array;
   clientPublicEphemeral: Uint8Array;
 } {
-  const modulo = byteArrayToBigInt(moduloBytes);
-  const generator = byteArrayToBigInt(generatorBytes);
+  const modulo = byteArrayToBigInt(parameters.N);
+  const generator = byteArrayToBigInt(parameters.G);
   while (true) {
     const clientPrivateEphemeral = generateRandomExponent(modulo);
     const clientPublicEphemeral = modPow(
@@ -45,10 +41,11 @@ export function generateClientEphemeral({
 }
 
 function modNegative(a: bigint, n: bigint): bigint {
-  while (a < 0n) {
-    a += n;
+  if (a >= 0n) {
+    return a % n;
   }
-  return a % n;
+  const A = -a;
+  return n - (A % n);
 }
 
 type ClientSharedHashOptions =
@@ -62,8 +59,7 @@ export async function deriveSessionKey({
   serverPublicEphemeral,
   deriveMultiplier = deriveMultiplierSRP6a,
   digest = digestPBKDF2,
-  N: moduloBytes = N,
-  G: generatorBytes = G,
+  parameters = defaultParameters,
   algorithm = "SHA-256",
   ...options
 }: ClientSharedHashOptions & {
@@ -74,8 +70,7 @@ export async function deriveSessionKey({
   serverPublicEphemeral: Uint8Array;
   deriveMultiplier?: DeriveMultiplierFn;
   digest?: DigestFn;
-  N?: Uint8Array;
-  G?: Uint8Array;
+  parameters?: SRPParameterSet;
   algorithm?: "SHA-1" | "SHA-256";
 }): Promise<Uint8Array> {
   const u = byteArrayToBigInt(
@@ -85,25 +80,22 @@ export async function deriveSessionKey({
           serverPublicEphemeral,
           algorithm,
           clientPublicEphemeral: options.clientPublicEphemeral,
-          N: moduloBytes,
+          parameters,
         })
   );
-  const k = byteArrayToBigInt(
-    await deriveMultiplier(moduloBytes, generatorBytes)
-  );
-  const modulo = byteArrayToBigInt(moduloBytes);
+  const k = byteArrayToBigInt(await deriveMultiplier(parameters));
+  const modulo = byteArrayToBigInt(parameters.N);
   const { x: xBytes } = await deriveVerifier(
     { username, password },
     {
       salt,
-      N: moduloBytes,
-      G: generatorBytes,
+      parameters,
       digest,
     }
   );
   const x = byteArrayToBigInt(xBytes);
   // B - k * g^x
-  const generator = byteArrayToBigInt(generatorBytes);
+  const generator = byteArrayToBigInt(parameters.G);
   const B = byteArrayToBigInt(serverPublicEphemeral);
   const base = modNegative(
     B - ((k * modPow(generator, x, modulo)) % modulo),
@@ -120,8 +112,7 @@ export async function deriveClientProof({
   clientPublicEphemeral,
   serverPublicEphemeral,
   sessionKey,
-  N: moduloBytes = N,
-  G: generatorBytes = G,
+  parameters = defaultParameters,
   algorithm = "SHA-256",
 }: {
   username: string;
@@ -129,19 +120,18 @@ export async function deriveClientProof({
   clientPublicEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
   sessionKey: Uint8Array;
-  N?: Uint8Array;
-  G?: Uint8Array;
+  parameters?: SRPParameterSet;
   algorithm?: "SHA-1" | "SHA-256";
 }) {
   const moduloHash = new Uint8Array(
-    await crypto.subtle.digest(algorithm, moduloBytes)
+    await crypto.subtle.digest(algorithm, parameters.N)
   );
-  const gHash = new Uint8Array(
-    await crypto.subtle.digest(algorithm, generatorBytes)
+  const generatorHash = new Uint8Array(
+    await crypto.subtle.digest(algorithm, parameters.G)
   );
-  const xored = new Uint8Array(
+  const combinedHash = new Uint8Array(
     Array.from({ length: moduloHash.length }).map(
-      (_, i) => moduloHash[i] ^ gHash[i]
+      (_, i) => moduloHash[i] ^ generatorHash[i]
     )
   );
   const usernameHash = new Uint8Array(
@@ -151,7 +141,7 @@ export async function deriveClientProof({
     await crypto.subtle.digest(
       algorithm,
       concatByteArrays(
-        xored,
+        combinedHash,
         usernameHash,
         salt,
         clientPublicEphemeral,

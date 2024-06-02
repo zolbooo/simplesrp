@@ -1,5 +1,5 @@
-import { G, N } from "../constants";
 import { modPow } from "../math";
+import { SRPParameterSet, defaultParameters } from "../constants";
 import {
   concatByteArrays,
   bigIntToByteArray,
@@ -7,36 +7,30 @@ import {
   byteArrayToHexString,
   generateRandomExponent,
 } from "../utils";
-import { deriveClientProof } from "./client";
 
 import { deriveSharedHash } from "./common";
-import { deriveMultiplierSRP6a } from "./multiplier";
+import { deriveClientProof } from "./client";
+import { DeriveMultiplierFn, deriveMultiplierSRP6a } from "./multiplier";
 
 export async function generateServerEphemeral({
   verifier,
   deriveMultiplier = deriveMultiplierSRP6a,
-  G: generatorBytes = G,
-  N: moduloBytes = N,
+  parameters = defaultParameters,
   unsafe_staticPrivateEphemeral,
 }: {
   verifier: Uint8Array;
-  deriveMultiplier?: (
-    N: Uint8Array,
-    g: Uint8Array
-  ) => Uint8Array | Promise<Uint8Array>;
-  G?: Uint8Array;
-  N?: Uint8Array;
+  deriveMultiplier?: DeriveMultiplierFn;
+  parameters?: SRPParameterSet;
   unsafe_staticPrivateEphemeral?: Uint8Array;
 }): Promise<{
   serverPrivateEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
 }> {
   const multiplier = BigInt(
-    "0x" +
-      byteArrayToHexString(await deriveMultiplier(moduloBytes, generatorBytes))
+    "0x" + byteArrayToHexString(await deriveMultiplier(parameters))
   );
-  const modulo = byteArrayToBigInt(moduloBytes);
-  const generator = byteArrayToBigInt(generatorBytes);
+  const modulo = byteArrayToBigInt(parameters.N);
+  const generator = byteArrayToBigInt(parameters.G);
   while (true) {
     const serverPrivateEphemeral = unsafe_staticPrivateEphemeral
       ? byteArrayToBigInt(unsafe_staticPrivateEphemeral)
@@ -64,14 +58,14 @@ export async function deriveSessionKey({
   verifier,
   clientPublicEphemeral,
   serverPrivateEphemeral,
-  N: moduloBytes = N,
+  parameters = defaultParameters,
   algorithm = "SHA-256",
   ...options
 }: ({ sharedHash: Uint8Array } | { serverPublicEphemeral: Uint8Array }) & {
   verifier: Uint8Array;
   clientPublicEphemeral: Uint8Array;
   serverPrivateEphemeral: Uint8Array;
-  N?: Uint8Array;
+  parameters?: SRPParameterSet;
   algorithm?: "SHA-1" | "SHA-256";
 }) {
   const v = byteArrayToBigInt(verifier);
@@ -82,15 +76,13 @@ export async function deriveSessionKey({
           algorithm,
           clientPublicEphemeral,
           serverPublicEphemeral: options.serverPublicEphemeral,
-          N: moduloBytes,
+          parameters,
         })
   );
   const A = byteArrayToBigInt(clientPublicEphemeral);
   const b = byteArrayToBigInt(serverPrivateEphemeral);
-  const modulo = byteArrayToBigInt(moduloBytes);
-  const S = bigIntToByteArray(
-    modPow((A * modPow(v, u, modulo)) % modulo, b, modulo)
-  );
+  const N = byteArrayToBigInt(parameters.N);
+  const S = bigIntToByteArray(modPow((A * modPow(v, u, N)) % N, b, N));
   return new Uint8Array(await crypto.subtle.digest(algorithm, S));
 }
 
@@ -100,8 +92,7 @@ export async function deriveServerProof({
   clientPublicEphemeral,
   serverPublicEphemeral,
   sessionKey,
-  N: moduloBytes = N,
-  G: generatorBytes = G,
+  parameters = defaultParameters,
   algorithm = "SHA-256",
 }: {
   username: string;
@@ -109,8 +100,7 @@ export async function deriveServerProof({
   clientPublicEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
   sessionKey: Uint8Array;
-  N?: Uint8Array;
-  G?: Uint8Array;
+  parameters?: SRPParameterSet;
   algorithm?: "SHA-1" | "SHA-256";
 }): Promise<{ expectedClientProof: Uint8Array; serverProof: Uint8Array }> {
   const M1 = await deriveClientProof({
@@ -119,9 +109,8 @@ export async function deriveServerProof({
     clientPublicEphemeral,
     serverPublicEphemeral,
     sessionKey,
-    N: moduloBytes,
-    G: generatorBytes,
     algorithm,
+    parameters,
   });
   return {
     expectedClientProof: M1,

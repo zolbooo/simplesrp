@@ -1,5 +1,6 @@
 import * as constants from "./constants";
 
+import { SRPParameterSet } from "./constants";
 import { concatByteArrays, safeByteArrayEquals } from "./utils";
 
 import { DeriveMultiplierFn } from "./srp/multiplier";
@@ -13,31 +14,27 @@ import {
 export class ClientSession {
   static deriveVerifier = deriveVerifier;
 
-  private algorithm: "SHA-1" | "SHA-256";
-  private G = constants.G;
-  private N = constants.N;
+  private algorithm: "SHA-1" | "SHA-256" = "SHA-256";
+  private parameters: SRPParameterSet = constants.SRP_PARAMETERS_RFC5054_2048;
 
   private digest?: DigestFn;
   private deriveMultiplier?: DeriveMultiplierFn;
   constructor({
-    G,
-    N,
-    algorithm = "SHA-256",
+    algorithm,
+    parameters,
     digest,
     deriveMultiplier,
   }: {
-    G?: Uint8Array;
-    N?: Uint8Array;
+    parameters?: SRPParameterSet;
     algorithm?: "SHA-256" | "SHA-1";
     digest?: DigestFn;
     deriveMultiplier?: DeriveMultiplierFn;
   } = {}) {
-    this.algorithm = algorithm;
-    if (G) {
-      this.G = G;
+    if (algorithm) {
+      this.algorithm = algorithm;
     }
-    if (N) {
-      this.N = N;
+    if (parameters) {
+      this.parameters;
     }
     if (digest) {
       this.digest = digest;
@@ -52,7 +49,7 @@ export class ClientSession {
 
   initializeHandshake(): { clientPublicEphemeral: Uint8Array } {
     const { clientPrivateEphemeral, clientPublicEphemeral } =
-      generateClientEphemeral({ N: this.N, G: this.G });
+      generateClientEphemeral({ N: this.parameters.N, G: this.parameters.G });
     this.clientPublicEphemeral = clientPublicEphemeral;
     this.clientPrivateEphemeral = clientPrivateEphemeral;
     return { clientPublicEphemeral };
@@ -85,8 +82,8 @@ export class ClientSession {
       clientPublicEphemeral: this.clientPublicEphemeral,
       clientPrivateEphemeral: this.clientPrivateEphemeral,
       serverPublicEphemeral: serverPublicEphemeral,
-      N: this.N,
-      G: this.G,
+      N: this.parameters.N,
+      G: this.parameters.G,
       algorithm: this.algorithm,
       digest: this.digest,
       deriveMultiplier: this.deriveMultiplier,
@@ -98,8 +95,8 @@ export class ClientSession {
       serverPublicEphemeral,
       clientPublicEphemeral: this.clientPublicEphemeral,
       sessionKey,
-      N: this.N,
-      G: this.G,
+      N: this.parameters.N,
+      G: this.parameters.G,
       algorithm: this.algorithm,
     });
     this.clientProof = clientProof;

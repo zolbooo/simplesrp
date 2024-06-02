@@ -1,5 +1,6 @@
 import * as constants from "./constants";
 import { safeByteArrayEquals } from "./utils";
+import type { SRPParameterSet } from "./constants";
 
 import {
   deriveSessionKey,
@@ -9,28 +10,24 @@ import {
 import { DeriveMultiplierFn } from "./srp/multiplier";
 
 export class ServerSession {
-  private algorithm: "SHA-1" | "SHA-256";
-  private G = constants.G;
-  private N = constants.N;
+  private algorithm: "SHA-1" | "SHA-256" = "SHA-256";
+  private parameters: SRPParameterSet = constants.SRP_PARAMETERS_RFC5054_2048;
 
   private deriveMultiplier?: DeriveMultiplierFn;
   constructor({
-    G,
-    N,
-    algorithm = "SHA-256",
+    algorithm,
+    parameters,
     deriveMultiplier,
   }: {
-    G?: Uint8Array;
-    N?: Uint8Array;
     algorithm?: "SHA-256" | "SHA-1";
+    parameters?: SRPParameterSet;
     deriveMultiplier?: DeriveMultiplierFn;
   } = {}) {
-    this.algorithm = algorithm;
-    if (G) {
-      this.G = G;
+    if (algorithm) {
+      this.algorithm = algorithm;
     }
-    if (N) {
-      this.N = N;
+    if (parameters) {
+      this.parameters = parameters;
     }
     if (deriveMultiplier) {
       this.deriveMultiplier = deriveMultiplier;
@@ -52,8 +49,8 @@ export class ServerSession {
     const { serverPrivateEphemeral, serverPublicEphemeral } =
       await generateServerEphemeral({
         verifier,
-        G: this.G,
-        N: this.N,
+        G: this.parameters.G,
+        N: this.parameters.N,
         deriveMultiplier: this.deriveMultiplier,
       });
     this.clientVerifier = verifier;
@@ -91,7 +88,7 @@ export class ServerSession {
       clientPublicEphemeral: this.clientPublicEphemeral,
       serverPublicEphemeral: this.serverPublicEphemeral,
       serverPrivateEphemeral: this.serverPrivateEphemeral,
-      N: this.N,
+      N: this.parameters.N,
       algorithm: this.algorithm,
     });
     const { expectedClientProof, serverProof } = await deriveServerProof({
@@ -100,8 +97,8 @@ export class ServerSession {
       sessionKey,
       clientPublicEphemeral: this.clientPublicEphemeral,
       serverPublicEphemeral: this.serverPublicEphemeral,
-      N: this.N,
-      G: this.G,
+      N: this.parameters.N,
+      G: this.parameters.G,
       algorithm: this.algorithm,
     });
     const clientVerified = safeByteArrayEquals(

@@ -1,5 +1,5 @@
-import { G, N } from "../constants";
 import { modPow } from "../math";
+import { SRPParameterSet, defaultParameters } from "../constants";
 import { byteArrayToBigInt, hexStringToByteArray } from "../utils";
 
 export type DigestFn = (options: {
@@ -33,13 +33,11 @@ const defaultSaltLength = 16;
 export async function deriveVerifier(
   { username, password }: { username: string; password: string },
   {
-    N: moduloBytes = N,
-    G: generatorBytes = G,
+    parameters = defaultParameters,
     digest = digestPBKDF2,
     ...options
   }: ({ salt: Uint8Array } | { saltLength?: number }) & {
-    N?: Uint8Array;
-    G?: Uint8Array;
+    parameters?: SRPParameterSet;
     digest?: DigestFn;
   } = {}
 ): Promise<{ salt: Uint8Array; x: Uint8Array; verifier: Uint8Array }> {
@@ -52,8 +50,8 @@ export async function deriveVerifier(
   const passwordHash = await digest({ input: hashInput, salt });
 
   const x = byteArrayToBigInt(passwordHash);
-  const modulo = byteArrayToBigInt(moduloBytes);
-  const generator = byteArrayToBigInt(generatorBytes);
+  const modulo = byteArrayToBigInt(parameters.N);
+  const generator = byteArrayToBigInt(parameters.G);
   const verifier = modPow(generator, x, modulo);
   return {
     salt,

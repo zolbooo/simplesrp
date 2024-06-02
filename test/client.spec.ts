@@ -5,7 +5,7 @@ import {
   deriveSessionKey,
   deriveClientProof,
   generateClientEphemeral,
-  deriveMultiplierSRP6a_SHA1,
+  deriveMultiplierSRP6aFactory,
 } from "../src/srp/client";
 
 import {
@@ -17,7 +17,7 @@ import {
   I,
   p,
   K,
-  N_1024,
+  parameters,
   testDigestRFC5054,
 } from "./test-vector-rfc5054";
 
@@ -46,10 +46,10 @@ test("it should derive session key correctly", async () => {
     salt: s,
     username: I,
     password: p,
-    N: N_1024,
-    deriveMultiplier: deriveMultiplierSRP6a_SHA1,
-    digest: testDigestRFC5054,
+    parameters,
     algorithm: "SHA-1",
+    deriveMultiplier: deriveMultiplierSRP6aFactory("SHA-1"),
+    digest: testDigestRFC5054,
   });
   expect(byteArrayToHexString(sessionKey).toLowerCase()).toBe(
     byteArrayToHexString(K)
@@ -67,9 +67,9 @@ test("should should derive client proof correctly", async () => {
     salt: s,
     username: I,
     password: p,
-    N: N_1024,
+    parameters,
     algorithm: "SHA-1",
-    deriveMultiplier: deriveMultiplierSRP6a_SHA1,
+    deriveMultiplier: deriveMultiplierSRP6aFactory("SHA-1"),
     digest: testDigestRFC5054,
   });
   expect(byteArrayToHexString(sessionKey)).toBe(byteArrayToHexString(K));
@@ -79,7 +79,7 @@ test("should should derive client proof correctly", async () => {
     clientPublicEphemeral: A,
     serverPublicEphemeral: B,
     sessionKey,
-    N: N_1024,
+    parameters,
     algorithm: "SHA-1",
   });
   expect(byteArrayToHexString(clientProof)).toBe(expectedM1);
