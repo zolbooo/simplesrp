@@ -9,9 +9,9 @@ import {
   generateServerEphemeral,
   deriveSessionKey as deriveSessionKey_server,
 } from "../src/srp/server";
+import { SRP_PARAMETERS_RFC5054_4096 } from "../src/constants";
 
 import { byteArrayToHexString } from "../src/utils";
-import { SRP_PARAMETERS_RFC5054_4096 } from "../src/constants";
 
 test("it should produce correct shared secret", async () => {
   // 1. Client init
