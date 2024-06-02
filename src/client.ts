@@ -34,7 +34,7 @@ export class ClientSession {
       this.algorithm = algorithm;
     }
     if (parameters) {
-      this.parameters;
+      this.parameters = parameters;
     }
     if (digest) {
       this.digest = digest;
