@@ -84,8 +84,8 @@ export async function deriveSessionKey({
         })
   );
   const k = byteArrayToBigInt(await deriveMultiplier(parameters));
-  const modulo = byteArrayToBigInt(parameters.N);
-  const { x: xBytes } = await deriveVerifier(
+  const N = byteArrayToBigInt(parameters.N);
+  const { x: xBytes, verifier } = await deriveVerifier(
     { username, password },
     {
       salt,
@@ -93,17 +93,18 @@ export async function deriveSessionKey({
       digest,
     }
   );
-  const x = byteArrayToBigInt(xBytes);
-  // B - k * g^x
-  const generator = byteArrayToBigInt(parameters.G);
+  const v = byteArrayToBigInt(verifier);
+  const G = byteArrayToBigInt(parameters.G);
   const B = byteArrayToBigInt(serverPublicEphemeral);
-  const base = modNegative(
-    B - ((k * modPow(generator, x, modulo)) % modulo),
-    modulo
+  // B - (k * g^x) = B - (k * v) since g^x = v
+  const base = modNegative(B - ((k * v) % N), N);
+  const a = byteArrayToBigInt(clientPrivateEphemeral);
+  const x = byteArrayToBigInt(xBytes);
+  const exp = (a + ((u * x) % N)) % N;
+  const S = modPow(base, exp, N);
+  return new Uint8Array(
+    await crypto.subtle.digest(algorithm, bigIntToByteArray(S))
   );
-  const exp = (byteArrayToBigInt(clientPrivateEphemeral) + u * x) % modulo;
-  const S = bigIntToByteArray(modPow(base, exp, modulo));
-  return new Uint8Array(await crypto.subtle.digest(algorithm, S));
 }
 
 export async function deriveClientProof({
