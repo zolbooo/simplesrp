@@ -82,8 +82,7 @@ export class ClientSession {
       clientPublicEphemeral: this.clientPublicEphemeral,
       clientPrivateEphemeral: this.clientPrivateEphemeral,
       serverPublicEphemeral: serverPublicEphemeral,
-      N: this.parameters.N,
-      G: this.parameters.G,
+      parameters: this.parameters,
       algorithm: this.algorithm,
       digest: this.digest,
       deriveMultiplier: this.deriveMultiplier,
@@ -95,8 +94,7 @@ export class ClientSession {
       serverPublicEphemeral,
       clientPublicEphemeral: this.clientPublicEphemeral,
       sessionKey,
-      N: this.parameters.N,
-      G: this.parameters.G,
+      parameters: this.parameters,
       algorithm: this.algorithm,
     });
     this.clientProof = clientProof;

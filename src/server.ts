@@ -49,8 +49,7 @@ export class ServerSession {
     const { serverPrivateEphemeral, serverPublicEphemeral } =
       await generateServerEphemeral({
         verifier,
-        G: this.parameters.G,
-        N: this.parameters.N,
+        parameters: this.parameters,
         deriveMultiplier: this.deriveMultiplier,
       });
     this.clientVerifier = verifier;
@@ -88,7 +87,7 @@ export class ServerSession {
       clientPublicEphemeral: this.clientPublicEphemeral,
       serverPublicEphemeral: this.serverPublicEphemeral,
       serverPrivateEphemeral: this.serverPrivateEphemeral,
-      N: this.parameters.N,
+      parameters: this.parameters,
       algorithm: this.algorithm,
     });
     const { expectedClientProof, serverProof } = await deriveServerProof({
@@ -97,8 +96,7 @@ export class ServerSession {
       sessionKey,
       clientPublicEphemeral: this.clientPublicEphemeral,
       serverPublicEphemeral: this.serverPublicEphemeral,
-      N: this.parameters.N,
-      G: this.parameters.G,
+      parameters: this.parameters,
       algorithm: this.algorithm,
     });
     const clientVerified = safeByteArrayEquals(
