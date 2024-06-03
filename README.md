@@ -75,16 +75,10 @@ const { salt, verifier } = await deriveVerifier({ username, password });
 
 #### Authentication
 
-1. Generate client-side handshake data and send it to the server.
+1. Request an authentication challenge from the server.
 
 ```javascript
-import { ClientSession } from "simplesrp";
-
-const username = "TODO";
-const clientSession = new ClientSession();
-const { clientPublicEphemeral } = clientSession.initializeHandshake();
-// Send the clientPublicEphemeral along with the username to the server.
-api.requestAuthChallenge({ username, clientPublicEphemeral });
+api.requestAuthChallenge({ username });
 ```
 
 2. Retrieve the verifier and salt from the database, generate server-side handshake data and send it to the client.
@@ -92,14 +86,13 @@ api.requestAuthChallenge({ username, clientPublicEphemeral });
 ```javascript
 import { ServerSession } from "simplesrp";
 
-const { username, clientPublicEphemeral } = clientRequest;
+const { username } = clientRequest;
 const { salt, verifier } = await retrieveVerifier(username); // TODO: Implement `retrieveVerifier` function
 const serverSession = new ServerSession();
 const { serverPublicEphemeral } = serverSession.prepareHandshake({
   username,
   salt,
   verifier,
-  clientPublicEphemeral,
 });
 // TODO: Send the salt and serverPublicEphemeral to the client.
 const responseData = { salt, serverPublicEphemeral };
@@ -114,9 +107,15 @@ const authenticationSessionState = serverSession.exportState();
 res.cookie("auth-challenge", await encrypt(authenticationSessionState));
 ```
 
-4. Generate client proof and send it to the server.
+4. Retrieve the client handshake data, generate a client's keyshare and send it to the server.
 
 ```javascript
+import { ClientSession } from "simplesrp";
+
+const username = "TODO";
+const clientSession = new ClientSession();
+const { clientPublicEphemeral } = clientSession.initializeHandshake();
+
 const { salt, serverPublicEphemeral } = serverResponse;
 const { clientProof } = clientSession.finalizeHandshake({
   username,
@@ -125,7 +124,11 @@ const { clientProof } = clientSession.finalizeHandshake({
   verifier,
 });
 // TODO: Send the clientProof to the server.
-await api.sendAuthChallengeResponse({ username, clientProof });
+await api.sendAuthChallengeResponse({
+  username,
+  clientPublicEphemeral,
+  clientProof,
+});
 ```
 
 6. (Optional) Import the saved server session state.
@@ -138,8 +141,9 @@ const serverSession = ServerSession.fromState(authenticationSessionState);
 7. Verify the client proof and generate the server proof.
 
 ```javascript
-const { clientProof } = clientRequest;
+const { clientPublicEphemeral, clientProof } = clientRequest;
 const { clientVerified, serverProof } = serverSession.verifyClientProof({
+  clientPublicEphemeral,
   clientProof,
 });
 if (!clientVerified) {
