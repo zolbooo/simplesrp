@@ -13,6 +13,7 @@ test("it should reject handshake if username has changed", async () => {
   const { clientPublicEphemeral } = clientSession.initializeHandshake();
   const serverSession = new ServerSession();
   const { serverPublicEphemeral } = await serverSession.prepareHandshake({
+    username,
     salt,
     verifier,
     clientPublicEphemeral,
@@ -24,10 +25,7 @@ test("it should reject handshake if username has changed", async () => {
     serverPublicEphemeral,
   });
   const { clientVerified, serverProof } = await serverSession.finalizeHandshake(
-    {
-      username,
-      clientProof,
-    }
+    { clientProof }
   );
   expect(clientVerified).toBe(false);
   expect(serverProof).toBe(null);
@@ -44,6 +42,7 @@ test("it should reject handshake if password was incorrect", async () => {
   const { clientPublicEphemeral } = clientSession.initializeHandshake();
   const serverSession = new ServerSession();
   const { serverPublicEphemeral } = await serverSession.prepareHandshake({
+    username,
     salt,
     verifier,
     clientPublicEphemeral,
@@ -55,10 +54,7 @@ test("it should reject handshake if password was incorrect", async () => {
     serverPublicEphemeral,
   });
   const { clientVerified, serverProof } = await serverSession.finalizeHandshake(
-    {
-      username,
-      clientProof,
-    }
+    { clientProof }
   );
   expect(clientVerified).toBe(false);
   expect(serverProof).toBe(null);

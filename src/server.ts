@@ -10,6 +10,7 @@ import {
 import { deriveClientProof } from "./srp/client";
 
 export interface ServerState {
+  username: string;
   salt: Uint8Array;
   clientVerifier: Uint8Array;
   clientPublicEphemeral: Uint8Array;
@@ -51,10 +52,12 @@ export class ServerSession {
   }
 
   async prepareHandshake({
+    username,
     salt,
     verifier,
     clientPublicEphemeral,
   }: {
+    username: string;
     salt: Uint8Array;
     verifier: Uint8Array;
     clientPublicEphemeral: Uint8Array;
@@ -65,6 +68,7 @@ export class ServerSession {
         parameters: this.parameters,
       });
     this.state = {
+      username,
       salt,
       clientVerifier: verifier,
       clientPublicEphemeral,
@@ -75,10 +79,8 @@ export class ServerSession {
   }
 
   async finalizeHandshake({
-    username,
     clientProof,
   }: {
-    username: string;
     clientProof: Uint8Array;
   }): Promise<{
     serverProof: Uint8Array | null;
@@ -98,7 +100,7 @@ export class ServerSession {
       parameters: this.parameters,
     });
     const expectedClientProof = await deriveClientProof({
-      username,
+      username: this.state.username,
       salt: this.state.salt,
       clientPublicEphemeral: this.state.clientPublicEphemeral,
       serverPublicEphemeral: this.state.serverPublicEphemeral,

@@ -20,6 +20,7 @@ test("it should perform client-server handshake properly", async () => {
   const { clientPublicEphemeral } = clientSession.initializeHandshake();
   // 3. Retrieve verifier for the user, initialize server session
   const { serverPublicEphemeral } = await serverSession.prepareHandshake({
+    username,
     salt,
     verifier,
     clientPublicEphemeral,
@@ -33,7 +34,7 @@ test("it should perform client-server handshake properly", async () => {
   });
   // 5. Server finalizes handshake, verifies this user
   const { serverProof, clientVerified } = await serverSession.finalizeHandshake(
-    { username, clientProof }
+    { clientProof }
   );
   expect(clientVerified).toBe(true);
   // (Optional) 6. Client can verify server's proof
@@ -57,6 +58,7 @@ test("it should reject handshake with the incorrect password", async () => {
   const { clientPublicEphemeral } = clientSession.initializeHandshake();
   // 3. Retrieve verifier for the user, initialize server session
   const { serverPublicEphemeral } = await serverSession.prepareHandshake({
+    username,
     salt,
     verifier,
     clientPublicEphemeral,
@@ -70,7 +72,7 @@ test("it should reject handshake with the incorrect password", async () => {
   });
   // 5. Server finalizes handshake, verifies this user
   const { serverProof, clientVerified } = await serverSession.finalizeHandshake(
-    { username, clientProof }
+    { clientProof }
   );
   expect(clientVerified).toBe(false);
   expect(serverProof).toBe(null);
@@ -97,6 +99,7 @@ test("it should perform client-server handshake with RFC5054 3072 bit parameters
   const { clientPublicEphemeral } = clientSession.initializeHandshake();
   // 3. Retrieve verifier for the user, initialize server session
   const { serverPublicEphemeral } = await serverSession.prepareHandshake({
+    username,
     salt,
     verifier,
     clientPublicEphemeral,
@@ -110,7 +113,7 @@ test("it should perform client-server handshake with RFC5054 3072 bit parameters
   });
   // 5. Server finalizes handshake, verifies this user
   const { serverProof, clientVerified } = await serverSession.finalizeHandshake(
-    { username, clientProof }
+    { clientProof }
   );
   expect(clientVerified).toBe(true);
   // (Optional) 6. Client verifies server's proof

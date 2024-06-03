@@ -96,6 +96,8 @@ const { username, clientPublicEphemeral } = clientRequest;
 const { salt, verifier } = await retrieveVerifier(username); // TODO: Implement `retrieveVerifier` function
 const serverSession = new ServerSession();
 const { serverPublicEphemeral } = serverSession.prepareHandshake({
+  username,
+  salt,
   verifier,
   clientPublicEphemeral,
 });
@@ -136,9 +138,8 @@ const serverSession = ServerSession.fromState(authenticationSessionState);
 7. Verify the client proof and generate the server proof.
 
 ```javascript
-const { username, clientProof } = clientRequest;
+const { clientProof } = clientRequest;
 const { clientVerified, serverProof } = serverSession.verifyClientProof({
-  username,
   clientProof,
 });
 if (!clientVerified) {
