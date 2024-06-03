@@ -29,6 +29,10 @@
     "./client": {
       "types": "./lib/srp/client.d.ts",
       "default": "./lib/srp/client.js"
+    },
+    "./verifier": {
+      "types": "./lib/srp/verifier.d.ts",
+      "default": "./lib/srp/verifier.js"
     }
   },
   "repository": {
