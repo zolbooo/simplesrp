@@ -19,6 +19,20 @@ export interface ServerState {
 export class ServerSession {
   private parameters: SRPParameterSet = constants.SRP_PARAMETERS_RFC5054_2048;
 
+  private state?: ServerState;
+  exportState(): ServerState {
+    if (!this.state) {
+      throw TypeError(
+        "Session is not initialized. Did you call prepareHandshake or importState?"
+      );
+    }
+    return this.state;
+  }
+  importState(state: ServerState): ServerSession {
+    this.state = state;
+    return this;
+  }
+
   constructor({
     parameters,
   }: {
@@ -28,15 +42,11 @@ export class ServerSession {
       this.parameters = parameters;
     }
   }
-
-  private state?: ServerState;
-  exportState(): ServerState {
-    if (!this.state) {
-      throw Error(
-        "Session is not initialized. Did you call prepareHandshake method?"
-      );
-    }
-    return this.state;
+  static fromState(
+    state: ServerState,
+    parameters?: SRPParameterSet
+  ): ServerSession {
+    return new ServerSession({ parameters }).importState(state);
   }
 
   async prepareHandshake({
@@ -74,7 +84,7 @@ export class ServerSession {
   }> {
     if (!this.state) {
       throw Error(
-        "Session is not initialized. Did you call prepareHandshake method?"
+        "Session is not initialized. Did you call prepareHandshake or importState?"
       );
     }
 
