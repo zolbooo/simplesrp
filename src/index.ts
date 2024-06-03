@@ -1,3 +1,3 @@
 export { ClientSession } from "./client";
-export { ServerSession } from "./server";
+export { ServerSession, type ServerState } from "./server";
 export * from "./constants";
