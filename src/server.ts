@@ -9,6 +9,13 @@ import {
 } from "./srp/server";
 import { deriveClientProof } from "./srp/client";
 
+export interface ServerState {
+  clientVerifier: Uint8Array;
+  clientPublicEphemeral: Uint8Array;
+  serverPrivateEphemeral: Uint8Array;
+  serverPublicEphemeral: Uint8Array;
+}
+
 export class ServerSession {
   private parameters: SRPParameterSet = constants.SRP_PARAMETERS_RFC5054_2048;
 
@@ -22,10 +29,15 @@ export class ServerSession {
     }
   }
 
-  private clientVerifier?: Uint8Array;
-  private clientPublicEphemeral?: Uint8Array;
-  private serverPrivateEphemeral?: Uint8Array;
-  private serverPublicEphemeral?: Uint8Array;
+  private state?: ServerState;
+  exportState(): ServerState {
+    if (!this.state) {
+      throw Error(
+        "Session is not initialized. Did you call prepareHandshake method?"
+      );
+    }
+    return this.state;
+  }
 
   async prepareHandshake({
     verifier,
@@ -39,10 +51,12 @@ export class ServerSession {
         verifier,
         parameters: this.parameters,
       });
-    this.clientVerifier = verifier;
-    this.clientPublicEphemeral = clientPublicEphemeral;
-    this.serverPrivateEphemeral = serverPrivateEphemeral;
-    this.serverPublicEphemeral = serverPublicEphemeral;
+    this.state = {
+      clientVerifier: verifier,
+      clientPublicEphemeral,
+      serverPrivateEphemeral,
+      serverPublicEphemeral,
+    };
     return { serverPublicEphemeral };
   }
 
@@ -58,29 +72,24 @@ export class ServerSession {
     serverProof: Uint8Array | null;
     clientVerified: boolean;
   }> {
-    if (
-      !this.clientVerifier ||
-      !this.clientPublicEphemeral ||
-      !this.serverPublicEphemeral ||
-      !this.serverPrivateEphemeral
-    ) {
+    if (!this.state) {
       throw Error(
         "Session is not initialized. Did you call prepareHandshake method?"
       );
     }
 
     const sessionKey = await deriveSessionKey({
-      verifier: this.clientVerifier,
-      clientPublicEphemeral: this.clientPublicEphemeral,
-      serverPublicEphemeral: this.serverPublicEphemeral,
-      serverPrivateEphemeral: this.serverPrivateEphemeral,
+      verifier: this.state.clientVerifier,
+      clientPublicEphemeral: this.state.clientPublicEphemeral,
+      serverPublicEphemeral: this.state.serverPublicEphemeral,
+      serverPrivateEphemeral: this.state.serverPrivateEphemeral,
       parameters: this.parameters,
     });
     const expectedClientProof = await deriveClientProof({
       username,
       salt,
-      clientPublicEphemeral: this.clientPublicEphemeral,
-      serverPublicEphemeral: this.serverPublicEphemeral,
+      clientPublicEphemeral: this.state.clientPublicEphemeral,
+      serverPublicEphemeral: this.state.serverPublicEphemeral,
       sessionKey,
       parameters: this.parameters,
     });
@@ -96,7 +105,7 @@ export class ServerSession {
     }
     return {
       serverProof: await deriveServerProof({
-        clientPublicEphemeral: this.clientPublicEphemeral,
+        clientPublicEphemeral: this.state.clientPublicEphemeral,
         clientProof,
         sessionKey,
         parameters: this.parameters,
