@@ -13,7 +13,6 @@ export interface ServerState {
   username: string;
   salt: Uint8Array;
   clientVerifier: Uint8Array;
-  clientPublicEphemeral: Uint8Array;
   serverPrivateEphemeral: Uint8Array;
   serverPublicEphemeral: Uint8Array;
 }
@@ -55,12 +54,10 @@ export class ServerSession {
     username,
     salt,
     verifier,
-    clientPublicEphemeral,
   }: {
     username: string;
     salt: Uint8Array;
     verifier: Uint8Array;
-    clientPublicEphemeral: Uint8Array;
   }): Promise<{ serverPublicEphemeral: Uint8Array }> {
     const { serverPrivateEphemeral, serverPublicEphemeral } =
       await generateServerEphemeral({
@@ -71,7 +68,6 @@ export class ServerSession {
       username,
       salt,
       clientVerifier: verifier,
-      clientPublicEphemeral,
       serverPrivateEphemeral,
       serverPublicEphemeral,
     };
@@ -79,8 +75,10 @@ export class ServerSession {
   }
 
   async finalizeHandshake({
+    clientPublicEphemeral,
     clientProof,
   }: {
+    clientPublicEphemeral: Uint8Array;
     clientProof: Uint8Array;
   }): Promise<{
     serverProof: Uint8Array | null;
@@ -93,18 +91,18 @@ export class ServerSession {
     }
 
     const sessionKey = await deriveSessionKey({
+      clientPublicEphemeral,
       verifier: this.state.clientVerifier,
-      clientPublicEphemeral: this.state.clientPublicEphemeral,
       serverPublicEphemeral: this.state.serverPublicEphemeral,
       serverPrivateEphemeral: this.state.serverPrivateEphemeral,
       parameters: this.parameters,
     });
     const expectedClientProof = await deriveClientProof({
+      sessionKey,
+      clientPublicEphemeral,
       username: this.state.username,
       salt: this.state.salt,
-      clientPublicEphemeral: this.state.clientPublicEphemeral,
       serverPublicEphemeral: this.state.serverPublicEphemeral,
-      sessionKey,
       parameters: this.parameters,
     });
     const clientVerified = safeByteArrayEquals(
@@ -119,7 +117,7 @@ export class ServerSession {
     }
     return {
       serverProof: await deriveServerProof({
-        clientPublicEphemeral: this.state.clientPublicEphemeral,
+        clientPublicEphemeral,
         clientProof,
         sessionKey,
         parameters: this.parameters,
