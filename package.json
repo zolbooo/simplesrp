@@ -29,10 +29,6 @@
     "./client": {
       "types": "./lib/srp/client.d.ts",
       "default": "./lib/srp/client.js"
-    },
-    "./constants": {
-      "types": "./lib/constants.d.ts",
-      "default": "./lib/constants.js"
     }
   },
   "repository": {
