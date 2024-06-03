@@ -157,3 +157,4 @@ export async function deriveClientProof({
 
 export * from "./verifier";
 export * from "./multiplier";
+export { safeByteArrayEquals } from "../utils";

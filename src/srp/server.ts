@@ -109,3 +109,4 @@ export async function deriveServerProof({
 
 export * from "./multiplier";
 export { deriveClientProof } from "./client";
+export { safeByteArrayEquals } from "../utils";
