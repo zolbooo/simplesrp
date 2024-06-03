@@ -10,7 +10,7 @@ import {
 
 import { deriveSharedHash } from "./common";
 import { deriveMultiplierSRP6a } from "./multiplier";
-import { DigestFn, deriveVerifier, digestPBKDF2 } from "./verifier";
+import { DigestFn, deriveVerifier } from "./verifier";
 
 export function generateClientEphemeral(
   parameters: SRPParameterSet = defaultParameters
@@ -57,7 +57,7 @@ export async function deriveSessionKey({
   salt,
   clientPrivateEphemeral,
   serverPublicEphemeral,
-  digest = digestPBKDF2,
+  digest,
   parameters = defaultParameters,
   unsafe_skipOutputHashing = false,
   ...options

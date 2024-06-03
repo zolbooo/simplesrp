@@ -9,7 +9,7 @@ export type DigestFn = (
   },
   parameters: SRPParameterSet
 ) => Uint8Array | Promise<Uint8Array>;
-export const digestPBKDF2 = async ({
+const digestPBKDF2 = async ({
   salt,
   input,
 }: {
